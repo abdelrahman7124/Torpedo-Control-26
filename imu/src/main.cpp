@@ -1,11 +1,19 @@
 #include <Arduino.h>
 #include "imu.h"
+
 unsigned long previousMillis = 0;
+
+float angleX = 0, angleY = 0, angleZ = 0;
+float threshold = 0.5;
+
+
+
 void setup() {
     Serial.begin(9600); 
     delay(1000);
 
     Serial.println("Initializing IMU...");
+    Serial.println("KEEP SENSOR STATIONARY FOR CALIBRATION...");
     
     if (!imu_setup()) {
         Serial.println("IMU initialization failed! Check connections.");
@@ -16,32 +24,29 @@ void setup() {
     }
     
     Serial.println("IMU Ready!");
+    
 }
 
 void loop() {
+
     imu_update();
 
-    float ax = 0, ay = 0, az = 0;
-    float gx = 0, gy = 0, gz = 0;
-    float angleX = 0, angleY = 0, angleZ = 0;
-    float temp = 0;    
+    get_angles(angleX, angleY, angleZ, threshold);
 
-
-    get_angles(angleX, angleY, angleZ);
-    if (millis() - previousMillis > 1000) {
-
-    Serial.println("==== IMU Readings ====");
-
-
-    Serial.print("Angle: ");
-    Serial.print(angleX, 2); Serial.print(", ");
-    Serial.print(angleY, 2); Serial.print(", ");
-    Serial.println(angleZ, 2);
-
-    Serial.println("======================");
-    Serial.println();
-
-    previousMillis = millis();
+    if (millis() - previousMillis > 500) {
+        
+        Serial.print("Pitch(X): ");
+        Serial.print(angleX, 1);
+        
+        Serial.print(" | Roll(Y): ");
+        Serial.print(angleY, 1);
+        
+        Serial.print(" | Yaw(Z): ");
+        Serial.println(angleZ, 2);
+        
+        previousMillis = millis();
     }
 
+    delay(5);
+    
 }

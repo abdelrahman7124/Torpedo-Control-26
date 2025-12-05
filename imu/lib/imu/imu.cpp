@@ -4,6 +4,9 @@
 
 MPU6050 mpu(Wire);
 
+float stableAngleZ = 0.0;
+unsigned long lastMicros = 0;
+
 bool imu_setup() {
     Wire.begin();
     byte status = mpu.begin();
@@ -18,6 +21,10 @@ bool imu_setup() {
     Serial.println("Calculating offsets...");
     mpu.calcOffsets(true, true);
     Serial.println("Offsets calculated!");
+
+    lastMicros = micros();
+    stableAngleZ = 0.0;
+
     return true;
 }
 
@@ -35,10 +42,20 @@ void get_gyroscope(float& gx, float& gy, float& gz) {
 
 }
 
-void get_angles(float& angleX, float& angleY, float& angleZ) {
+void get_angles(float& angleX, float& angleY, float& angleZ, float threshold) {
     angleX = mpu.getAngleX();
     angleY = mpu.getAngleY();
-    angleZ = mpu.getAngleZ();
+    //angleZ = mpu.getAngleZ();
+    unsigned long currentMicros = micros();
+    float dt = (currentMicros - lastMicros) / 1000000.0;
+    lastMicros = currentMicros;
+
+    float gz = mpu.getGyroZ();
+    if (abs(gz) > threshold) {
+        stableAngleZ += gz * dt;
+    }
+
+    angleZ = stableAngleZ;
 
 }
 
