@@ -1,53 +1,53 @@
-#include <SPI.h>
-#include <EthernetENC.h>
-#include <EthernetUdp.h>
 #include <Arduino.h>
+#include "imu.h"
+#include "ethernet.h"
+unsigned long previousMillis = 0;
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 177);
-unsigned int localPort = 8888;
+float angleX = 0, angleY = 0, angleZ = 0;
+float threshold = 0.5;
 
-EthernetUDP Udp;
-char packetBuffer[24];
+
 
 void setup() {
-  Serial.begin(9600);
-  Ethernet.init(5);
-  pinMode(22,OUTPUT);
-  Serial.println("beginning module");
-  Ethernet.begin(mac, ip);
-
-  if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-    Serial.println("Ethernet module not found");
-    while (true) {
-      delay(1);
+    Serial.begin(9600); 
+    delay(1000);
+    if(ethernet_setup(IPAddress(192,168,1,30), IPAddress(192,168,1,2), 8888, 5) == 2){
+        Serial.println("Ethernet initialized successfully.");
+    } else {
+        Serial.println("Ethernet initialization failed!");
     }
-  }
-
-  if (Ethernet.linkStatus() == LinkOFF) {
-    Serial.println("Ethernet cable is not connected.");
-  }
-
-  Udp.begin(localPort);
+    Serial.println("Initializing IMU...");
+    Serial.println("KEEP SENSOR STATIONARY FOR CALIBRATION...");
+    
+    if (!imu_setup()) {
+        Serial.println("IMU initialization failed! Check connections.");
+        while(1) {
+            delay(1000);
+            Serial.println("System halted - IMU error");
+        }
+    }
+    
+    Serial.println("IMU Ready!");
+    
 }
 
 void loop() {
-  Ethernet.maintain();
+    MaintainEthernet();
+    imu_update();
 
-  int packetSize = Udp.parsePacket();
-  if (packetSize) {
-    Udp.read(packetBuffer, 24);
-    Serial.println("Data sent:");
-    if(packetBuffer[0]=='1'){
-      digitalWrite(22,HIGH);
-      Serial.println("led high");
-    }else{
-      digitalWrite(22,LOW);
-      Serial.println("led low");
+    get_angles(angleX, angleY, angleZ, threshold);
+    if (millis() - previousMillis > 500) {
+        float dataArray[3] = {angleX, angleY, angleZ};
+        sendDataArrayFloat(dataArray, 3);
+        Serial.print("Pitch(X): ");
+        Serial.print(angleX, 1);
+        Serial.print(" | Roll(Y): ");
+        Serial.print(angleY, 1);
+        Serial.print(" | Yaw(Z): ");
+        Serial.println(angleZ, 2);
+        previousMillis = millis();
     }
-    Serial.println(packetBuffer);
-    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    Udp.write("received the message");
-    Udp.endPacket();
-  }
+
+    delay(5);
+    
 }
