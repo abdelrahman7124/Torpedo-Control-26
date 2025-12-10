@@ -6,6 +6,7 @@ MPU6050 mpu(Wire);
 
 float stableAngleZ = 0.0;
 unsigned long lastMicros = 0;
+static float driftThreshold = 0.5;
 
 bool imu_setup() {
     Wire.begin();
@@ -42,7 +43,7 @@ void get_gyroscope(float& gx, float& gy, float& gz) {
 
 }
 
-void get_angles(float& angleX, float& angleY, float& angleZ, float threshold) {
+void get_angles(float& angleX, float& angleY, float& angleZ) {
     angleX = mpu.getAngleX();
     angleY = mpu.getAngleY();
     //angleZ = mpu.getAngleZ();
@@ -51,7 +52,7 @@ void get_angles(float& angleX, float& angleY, float& angleZ, float threshold) {
     lastMicros = currentMicros;
 
     float gz = mpu.getGyroZ();
-    if (abs(gz) > threshold) {
+    if (abs(gz) > driftThreshold) {
         stableAngleZ += gz * dt;
     }
 
@@ -61,6 +62,10 @@ void get_angles(float& angleX, float& angleY, float& angleZ, float threshold) {
 
 void get_temperature(float& temp) {
     temp = mpu.getTemp();
+}
+
+void set_drift_threshold(float threshold) {
+    driftThreshold = threshold;
 }
 
 void imu_update() {

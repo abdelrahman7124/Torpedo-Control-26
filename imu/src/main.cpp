@@ -4,9 +4,6 @@
 unsigned long previousMillis = 0;
 
 float angleX = 0, angleY = 0, angleZ = 0;
-float threshold = 0.5;
-
-
 
 void setup() {
     Serial.begin(9600); 
@@ -31,7 +28,7 @@ void loop() {
 
     imu_update();
 
-    get_angles(angleX, angleY, angleZ, threshold);
+    get_angles(angleX, angleY, angleZ);
 
     if (millis() - previousMillis > 500) {
         
