@@ -8,7 +8,7 @@ float stableAngleZ = 0.0;
 unsigned long lastMicros = 0;
 
 bool imu_setup() {
-    Wire.begin();
+    Wire.begin(21, 22); // SDA, SCL pins for ESP32
     byte status = mpu.begin();
     
     if(status != 0) {
@@ -45,7 +45,7 @@ void get_gyroscope(float& gx, float& gy, float& gz) {
 void get_angles(float& angleX, float& angleY, float& angleZ, float threshold) {
     angleX = mpu.getAngleX();
     angleY = mpu.getAngleY();
-    //angleZ = mpu.getAngleZ();
+    // angleZ = mpu.getAngleZ();
     unsigned long currentMicros = micros();
     float dt = (currentMicros - lastMicros) / 1000000.0;
     lastMicros = currentMicros;
@@ -65,4 +65,15 @@ void get_temperature(float& temp) {
 
 void imu_update() {
     mpu.update();
+}
+void imu_updateFull(float threshold) {
+    mpu.update();
+    unsigned long currentMicros = micros();
+    float dt = (currentMicros - lastMicros) / 1000000.0;
+    lastMicros = currentMicros;
+
+    float gz = mpu.getGyroZ();
+    if (abs(gz) > threshold) {
+        stableAngleZ += gz * dt;
+    }
 }

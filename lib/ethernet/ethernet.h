@@ -16,5 +16,8 @@ std::string ReadDataAndConfirm();
 void changeTargetIP(IPAddress newIP);
 void changeMyIP(IPAddress newIP);
 void changeMyPort(unsigned int localport1);
-
+char* checkIncomingUDP();
+void recoverNetwork();
+bool checkNetworkHealth();
+void resetUDP();
 #endif
