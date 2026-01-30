@@ -31,7 +31,7 @@ void setup() {
     }
     Serial.println("Initializing IMU...");
     Serial.println("KEEP SENSOR STATIONARY FOR CALIBRATION...");
-    
+    mySensor.depthInitialization();
     if (!imu_setup()) {
         Serial.println("IMU initialization failed! Check connections.");
         while(1) {
@@ -81,8 +81,8 @@ void loop() {
     get_angles(angleX, angleY, angleZ, threshold);
     if (millis() - previousMillis > 500) {
         Serial.print("Pressure Sensor Data:");
-        Serial.println(mySensor.getPressure());
-        float dataArray[4] = {angleX, angleY, angleZ,(float)mySensor.getPressure()};
+        Serial.println(mySensor.getDepth());
+        float dataArray[4] = {angleX, angleY, angleZ,mySensor.getDepth()};
         sendDataArrayFloat(dataArray, 4);
         Serial.print("Pitch(X): ");
         Serial.print(angleX, 1);
@@ -92,11 +92,11 @@ void loop() {
         Serial.println(angleZ, 2);
         previousMillis = millis();
     }
-   if (millis() - lastRcvdTime > 10000) {
-       Serial.println("System Frozen. Rebooting...");
-       delay(100); 
-       ESP.restart();
-   }
+//    if (millis() - lastRcvdTime > 10000) {
+//        Serial.println("System Frozen. Rebooting...");
+//        delay(100); 
+//        ESP.restart();
+//    }
     // esc.writeMicroseconds(1500); // neutral
     // delay(5000);
     // esc.writeMicroseconds(1700); // forward

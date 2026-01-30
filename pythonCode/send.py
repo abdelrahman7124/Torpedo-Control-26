@@ -9,7 +9,7 @@ print(f"Sending commands to {ESP_IP}:{ESP_PORT}...")
 
 try:
     while True:
-        command = "255,255,255,0" 
+        command = "255,0,255,0" 
         sock.sendto(command.encode(), (ESP_IP, ESP_PORT))
         time.sleep(0.1)
 

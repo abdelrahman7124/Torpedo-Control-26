@@ -174,3 +174,30 @@ int Pressure::getTemprature(){
   return this->temp;
 }
 
+void Pressure::depthInitialization() {
+  long sum = 0;
+  int samples = 20;
+
+  Serial.println("Calibrating Surface Pressure...");
+
+  for (int i = 0; i < samples; i++) {
+    this->update();
+    sum += this->pressure;
+    delay(10); 
+  }
+  this->oldPressure = (float)sum / samples;
+  
+  Serial.print("Baseline Pressure set to: ");
+  Serial.print(this->oldPressure);
+  Serial.println(" mbar");
+}
+
+float Pressure::getDepth() {
+  float diffPressure = (float)this->pressure - this->oldPressure;
+  float depthMeters = diffPressure / 98.1; 
+  // if (depthMeters < 0) {
+  //   depthMeters = 0.0;
+  // }
+
+  return depthMeters;
+}
