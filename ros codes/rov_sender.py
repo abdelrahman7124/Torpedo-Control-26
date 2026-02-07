@@ -11,9 +11,9 @@ class RovSender(Node):
         super().__init__('rov_sender')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.esp_addr = (ESP_IP, ESP_PORT)
-        self.current_cmd = "1500,1500,1500,1500" 
+        self.current_cmd = "1500,1500,1500,1500,1500,1500" 
         self.subscription = self.create_subscription(
-            String, 'rov_command', self.command_callback, 10)
+            String, 'esp_commands', self.command_callback, 10)
         self.timer = self.create_timer(0.1, self.send_udp_packet)
         self.get_logger().info(f"Sender Started. Targeting {ESP_IP}:{ESP_PORT}")
 

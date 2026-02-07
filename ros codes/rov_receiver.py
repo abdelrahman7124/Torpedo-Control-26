@@ -3,6 +3,8 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 import socket
+import json
+
 LISTEN_IP = "0.0.0.0"
 LISTEN_PORT = 8888
 
@@ -20,12 +22,23 @@ class RovReceiver(Node):
         try:
             data, addr = self.sock.recvfrom(1024)
             if data:
-                sensor_data = data.decode('utf-8').strip()
-                self.get_logger().info(f"RX: {sensor_data}")
+                raw_text = data.decode('utf-8').strip()
                 
-                msg = String()
-                msg.data = sensor_data
-                self.publisher_.publish(msg)
+                try:
+                    values = raw_text.split(',')
+                    telemetry_dict = {
+                        "pitch": float(values[0]),
+                        "roll": float(values[1]),
+                        "yaw": float(values[2]),
+                        "depth": float(values[3])
+                    }
+                    json_msg = json.dumps(telemetry_dict)
+                    msg = String()
+                    msg.data = json_msg
+                    self.publisher_.publish(msg)
+                except (ValueError, IndexError) as parse_error:
+                    self.get_logger().warn(f"Failed to parse data '{raw_text}': {parse_error}")
+
         except BlockingIOError:
             pass
         except Exception as e:
