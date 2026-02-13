@@ -5,7 +5,7 @@ import json
 
 class ThrustersMixer(Node):
     def __init__(self):
-        super().__init__('thrusters-mixer')
+        super().__init__('thrusters_mixer')
 
         self.cmd_sub = self.create_subscription(String, 'rov_commands', self.cmd_callback, 10)
         self.esp_pub = self.create_publisher(String, 'esp_commands', 10)
@@ -14,17 +14,18 @@ class ThrustersMixer(Node):
     def cmd_callback(self, msg):
         try:
             data = json.loads(msg.data)
-            surge = data.get('surge', 0.0)
-            sway = data.get('sway', 0.0)
-            heave = data.get('heave', 0.0)
-            yaw = data.get('yaw', 0.0)
+            fb = data.get('FB', 0.0)
+            rl = data.get('RL', 0.0)
+            ud = data.get('UD', 0.0)
+            yaw = data.get('YAW', 0.0)
+            pitch = data.get('PITCH', 0.0)
 
-            Thruster1 = surge + sway + yaw      #Front Right
-            Thruster2 = surge - sway - yaw      #Front Left    
-            Thruster3 = surge - sway + yaw      #Back Left
-            Thruster4 = surge + sway - yaw      #Back Right
-            Thruster5 = heave                   #Vertical Left
-            Thruster6 = heave                   #Vertical Right    
+            Thruster1 = fb + rl + yaw      #Front Right
+            Thruster2 = fb - rl - yaw      #Front Left    
+            Thruster3 = fb - rl + yaw      #Back Left
+            Thruster4 = fb + rl - yaw      #Back Right
+            Thruster5 = ud + pitch         #Vertical Front
+            Thruster6 = ud - pitch         #Vertical Back    
 
             outputs = [Thruster1, Thruster2, Thruster3, Thruster4, Thruster5, Thruster6]
             max_output = max(abs(output) for output in outputs)
@@ -35,14 +36,16 @@ class ThrustersMixer(Node):
             pwm = [max(1100, min(1900, p)) for p in pwm]
 
             esp_msg = String()
-            esp_msg.data = json.dumps({
+            """esp_msg.data = json.dumps({
                 'thruster_1': pwm[0],
                 'thruster_2': pwm[1],
                 'thruster_3': pwm[2],
                 'thruster_4': pwm[3],
                 'thruster_5': pwm[4],
                 'thruster_6': pwm[5],
-            })
+            })"""
+            
+            esp_msg.data = f"{pwm[0]},{pwm[1]},{pwm[2]},{pwm[3]},{pwm[4]},{pwm[5]}"
             self.esp_pub.publish(esp_msg)
 
         except json.JSONDecodeError as e:
