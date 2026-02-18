@@ -29,7 +29,6 @@ void setupThrusters() {
 }
 void parseAndDrive(char* packetBuffer) {
     int thrusterIndex = 0;
-    if(packetBuffer=="-1")ESP.restart();
     char* token = strtok(packetBuffer, ",");
     while (token != NULL && thrusterIndex < NUM_THRUSTERS) {
         int val = atoi(token); 

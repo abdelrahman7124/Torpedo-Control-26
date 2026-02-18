@@ -54,7 +54,6 @@ void loop() {
     }
     imu_update();
     mySensor.update();
-    imu_updateFull(threshold);
     char* incomingCmd = checkIncomingUDP(); 
     if(!checkNetworkHealth()){
         Serial.println("Network issue detected. Attempting to recover...");
@@ -63,6 +62,8 @@ void loop() {
     if (incomingCmd != NULL) {
         lastRcvdTime = millis();
         Serial.print("---------------------------------RX: "); Serial.println(incomingCmd);
+        if(incomingCmd=="-1")ESP.restart();        
+
         
         parseAndDrive(incomingCmd);
     } else {
@@ -77,7 +78,7 @@ void loop() {
     if (millis() - lastRcvdTime > 2000) {
         for(int i=0; i<4; i++) ledcWrite(i, 0); 
     }
-    // mySensor.display();
+    mySensor.display();
     get_angles(angleX, angleY, angleZ, threshold);
     if (millis() - previousMillis > 500) {
         Serial.print("Pressure Sensor Data:");

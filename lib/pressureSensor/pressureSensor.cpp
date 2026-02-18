@@ -1,5 +1,4 @@
 #include "pressureSensor.h"
-#include <imu.h>
 unsigned long previousMillis2 = 0;
 
 float threshold1 = 0.5;
@@ -11,14 +10,11 @@ void Pressure::init() {
   hspi->setClockDivider(SPI_CLOCK_DIV32);  //divide 16 MHz to communicate on 500 kHz
   ledcSetup(pwm_Channel, pwm_Freq, pwm_Resolution);
   ledcAttachPin(MCLK, pwm_Channel);
-  imu_updateFull(threshold1);
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
   delay(100);
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
 }
@@ -102,12 +98,10 @@ void Pressure::update() {
   hspi->transfer(0x0F);            //send first byte of command to get temperature value
   hspi->transfer(0x20);            //send second byte of command to get temperature value
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
   delay(35);                     //wait for conversion end
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
   hspi->setDataMode(SPI_MODE1);    //change mode in order to listen
@@ -125,12 +119,10 @@ void Pressure::update() {
   hspi->transfer(0x0F);            //send first byte of command to get pressure value
   hspi->transfer(0x40);          //send second byte of command to get pressure value
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
   delay(35);                  //wait for conversion end
   if (millis() - previousMillis2 > 500) {
-    imu_updateFull(threshold1);
     previousMillis2 = millis();
   }
   hspi->setDataMode(SPI_MODE1);    //change mode in order to listen
