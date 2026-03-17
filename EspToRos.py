@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
@@ -8,9 +9,9 @@ import json
 LISTEN_IP = "0.0.0.0"
 LISTEN_PORT = 8888
 
-class RovReceiver(Node):
+class EspToRos(Node):
     def __init__(self):
-        super().__init__('rov_receiver')
+        super().__init__('esp_to_ros')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((LISTEN_IP, LISTEN_PORT))
         self.sock.setblocking(False) 
@@ -46,7 +47,7 @@ class RovReceiver(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = RovReceiver()
+    node = EspToRos()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

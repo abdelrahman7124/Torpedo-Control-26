@@ -14,11 +14,11 @@ class ThrustersMixer(Node):
     def cmd_callback(self, msg):
         try:
             data = json.loads(msg.data)
-            fb = data.get('FB', 0.0)
-            rl = data.get('RL', 0.0)
-            ud = data.get('UD', 0.0)
-            yaw = data.get('YAW', 0.0)
-            pitch = data.get('PITCH', 0.0)
+            fb = data.get('fb', 0.0)
+            rl = data.get('rl', 0.0)
+            ud = data.get('ud', 0.0)
+            yaw = data.get('yaw', 0.0)
+            pitch = data.get('pitch', 0.0)
 
             Thruster1 = fb + rl + yaw      #Front Right
             Thruster2 = fb - rl - yaw      #Front Left    

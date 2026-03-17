@@ -6,9 +6,9 @@ import socket
 ESP_IP = "192.168.1.55"
 ESP_PORT = 9000
 
-class RovSender(Node):
+class RosToEsp(Node):
     def __init__(self):
-        super().__init__('rov_to_esp')
+        super().__init__('ros_to_esp')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.esp_addr = (ESP_IP, ESP_PORT)
         self.current_cmd = "1500,1500,1500,1500,1500,1500" 
@@ -28,7 +28,7 @@ class RovSender(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = RovSender()
+    node = RosToEsp()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

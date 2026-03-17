@@ -49,7 +49,7 @@ class ROVController(Node):
                 self.depth_pid.set_setpoint(self.current_depth)
                 self.pitch_pid.set_setpoint(0.0)
                 self.get_logger().info(
-                    f"🎯 HOLD - Yaw: {math.degrees(self.current_yaw):.1f}°, "
+                    f"🎯 HOLD - Yaw: {self.current_yaw:.1f}°, "
                     f"Depth: {self.current_depth:.2f}m"
                 )
 
@@ -78,7 +78,7 @@ class ROVController(Node):
                 self.pitch_pid.set_setpoint(0.0)
                 self.initialized = True
                 self.get_logger().info(
-                    f"✅ Initialized - Yaw: {math.degrees(self.current_yaw):.1f}°, "
+                    f"✅ Initialized - Yaw: {self.current_yaw:.1f}°, "
                     f"Depth: {self.current_depth:.2f}m"
                 )
                 return
