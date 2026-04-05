@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include "imu.h"
 #include "ethernet.h"
 #include "pressureSensor.h"
@@ -39,8 +39,8 @@ void setup() {
             Serial.println("System halted - IMU error");
         }
     }
-    
-    Serial.println("IMU Ready!");    
+
+    Serial.println("IMU Ready!");
     // esc.attach(4); // أي pin PWM في ESP32
     // esc.writeMicroseconds(1500); // neutral
     // delay(3000); // arming time
@@ -49,12 +49,12 @@ void setup() {
 void loop() {
     static unsigned long dhcpTimer = 0;
     if (millis() - dhcpTimer > 2000) {
-        MaintainEthernet(); 
+        MaintainEthernet();
         dhcpTimer = millis();
     }
     imu_update();
     mySensor.update();
-    char* incomingCmd = checkIncomingUDP(); 
+    char* incomingCmd = checkIncomingUDP();
     if(!checkNetworkHealth()){
         Serial.println("Network issue detected. Attempting to recover...");
         recoverNetwork();
@@ -62,9 +62,7 @@ void loop() {
     if (incomingCmd != NULL) {
         lastRcvdTime = millis();
         Serial.print("---------------------------------RX: "); Serial.println(incomingCmd);
-        if(incomingCmd=="-1")ESP.restart();        
-
-        
+        if(incomingCmd=="-1")ESP.restart();
         parseAndDrive(incomingCmd);
     } else {
         static unsigned long waitTimer = 0;
@@ -76,7 +74,7 @@ void loop() {
         }
     }
     if (millis() - lastRcvdTime > 2000) {
-        for(int i=0; i<4; i++) ledcWrite(i, 0); 
+        for(int i=0; i<4; i++) ledcWrite(i, 0);
     }
     mySensor.display();
     get_angles(angleX, angleY, angleZ, threshold);
@@ -95,7 +93,7 @@ void loop() {
     }
 //    if (millis() - lastRcvdTime > 10000) {
 //        Serial.println("System Frozen. Rebooting...");
-//        delay(100); 
+//        delay(100);
 //        ESP.restart();
 //    }
     // esc.writeMicroseconds(1500); // neutral
@@ -112,5 +110,48 @@ void loop() {
     // delay(5000);
     // esc.writeMicroseconds(1500); // neutral
     // delay(5000);
-    
+
+}*/
+#include <Wire.h>
+#include <SFE_BMP180.h>
+SFE_BMP180 pressure;
+
+void setup(){
+    Serial.begin(115200);
+    if (pressure.begin()){
+        Serial.println("its working");
+    }
+    else{
+        Serial.println("Not working\n");
+        while (1);
+    }
+}
+
+void loop(){
+    char status;
+    double T, P;
+    status = pressure.startTemperature();
+
+    if (status != 0){
+        delay(status);
+        status = pressure.getTemperature(T);
+        if (status != 0){
+            Serial.print("Temperature: ");
+            Serial.print(T, 2);
+            Serial.println(" °C");
+            status = pressure.startPressure(3);
+            if (status != 0){
+                delay(status);
+                status = pressure.getPressure(P, T);
+                if (status != 0){
+                    Serial.print("Absolute Pressure: ");
+                    Serial.print(P, 2);
+                    Serial.print(" mb / ");
+                    Serial.print(P * 0.02953, 2);
+                    Serial.println(" inHg");
+                }
+            }
+        }
+    }
+    delay(2000);
 }
