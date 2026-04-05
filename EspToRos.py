@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
@@ -15,7 +14,7 @@ class EspToRos(Node):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((LISTEN_IP, LISTEN_PORT))
         self.sock.setblocking(False) 
-        self.publisher_ = self.create_publisher(String, 'rov_telemetry', 10)
+        self.telemetry = self.create_publisher(String, 'rov_telemetry', 10)
         self.timer = self.create_timer(0.01, self.check_udp_socket)
         self.get_logger().info(f"Receiver Started. Listening on Port {LISTEN_PORT}")
 
@@ -36,7 +35,7 @@ class EspToRos(Node):
                     json_msg = json.dumps(telemetry_dict)
                     msg = String()
                     msg.data = json_msg
-                    self.publisher_.publish(msg)
+                    self.telemetry.publish(msg)
                 except (ValueError, IndexError) as parse_error:
                     self.get_logger().warn(f"Failed to parse data '{raw_text}': {parse_error}")
 

@@ -33,6 +33,10 @@ setup(
             'rov_controller = joystick_control_pkg.rov_controller:main',
             'rov_input = joystick_control_pkg.rov_input:main',
             'thrusters_mixer = joystick_control_pkg.thrusters_mixer:main',
+            'thrusters_factors = joystick_control_pkg.thrusters_factors:main',
+            'gripper_controller = joystick_control_pkg.gripper_controller:main',
+            'esp_commands_control = joystick_control_pkg.esp_commands_control:main',
+
         ],
     },
 )

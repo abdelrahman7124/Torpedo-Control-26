@@ -37,5 +37,20 @@ def generate_launch_description():
             package='joystick_control_pkg',
             executable='esp_to_ros',
             name='esp_to_ros_node',
-        )
+        ),
+        Node(
+            package='joystick_control_pkg',
+            executable='thrusters_factors',
+            name='thrusters_factors_node',
+        ),
+        Node(
+            package='joystick_control_pkg',
+            executable='gripper_controller',
+            name='gripper_controller',
+        ),
+        Node(
+            package='joystick_control_pkg',
+            executable='esp_commands_control',
+            name='esp_commands_control_node',
+        ),
     ])

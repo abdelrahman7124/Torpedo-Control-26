@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 import json
-import math
 from .pid import PID
 
 
@@ -29,8 +28,9 @@ class ROVController(Node):
         self.current_pitch = 0.0
 
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
-        self.create_subscription(String, 'rov_state', self.state_callback, 10)
+        self.create_subscription(String, 'rov_telemetry', self.telemetry_callback, 10)
         self.cmd_pub = self.create_publisher(String, 'rov_commands', 10)
+        self.mode_pub = self.create_publisher(String, 'rov_mode', 10)
 
         self.get_logger().info("✅ Controller started")
 
@@ -60,12 +60,14 @@ class ROVController(Node):
                 self.pitch_pid.reset()
                 self.get_logger().info("🕹️ MANUAL")
 
+            self.mode_pub.publish(String(data=self.mode))
+
             self.prev_active = self.joy_active
 
         except json.JSONDecodeError:
             pass
 
-    def state_callback(self, msg):
+    def telemetry_callback(self, msg):
         try:
             data = json.loads(msg.data)
             self.current_yaw = data.get('yaw', 0.0)
@@ -108,8 +110,13 @@ class ROVController(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = ROVController()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
