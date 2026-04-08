@@ -2,36 +2,48 @@
 
 wireless::wireless()
 {
-    this->ssid = DEFAULT_SSID;
-    this->password = DEFAULT_PASSWORD;
+    strncpy(this->ssid ,DEFAULT_SSID, sizeof(this->ssid));
+    this->ssid[sizeof(this->ssid) - 1] = '\0';
+    
+    strncpy(this->password ,DEFAULT_PASSWORD,sizeof(this->password));
+    this->password[sizeof(this->password) - 1] = '\0';
+
     this->client_ip = DEFAULT_CLIENT_IP;
     this->port = DEFAULT_PORT;
 }
 
-void wireless::set_ssid(char* word)
+void wireless::set_ssid(const char* word)
 {
-    this->ssid = word;
+    strncpy(this->ssid ,word, sizeof(this->ssid));
+    this->ssid[sizeof(this->ssid) - 1] = '\0';
     LOG_INFO("SSID set to: %s", this->ssid);
 }
 
-void wireless::set_password(char* word)
+void wireless::set_password(const char* word)
 {
     if (strlen(word) < PASSWORD_MIN_LENGTH)
     {
         LOG_ERROR("%s", "Password must be at least 8 characters long!");
+        return;
     }
     
     else
     {
-        this->password = word;
+        if(strlen(word) >= sizeof(this->password))
+        {
+            LOG_WARN("%s", "Password is too long! Maximum length is 31 characters.");
+        }
+
+        strncpy(this->password ,word, sizeof(this->password));
+        this->password[sizeof(this->password) - 1] = '\0';
         LOG_INFO("Password set to: %s", this->password);
     }
 }
 
-void wireless::set_clientIP(char* msg)
+void wireless::set_clientIP(IPAddress msg)
 {
     this->client_ip = msg;
-    LOG_INFO("Client IP set to: %s", this->client_ip);
+    LOG_INFO("Client IP set to: %s", this->client_ip.toString().c_str());
 }
 
 void wireless::set_port(int num)
@@ -48,27 +60,27 @@ void wireless::set_port(int num)
     }
 }
 
-char* wireless::get_ssid()
+const char* wireless::get_ssid() const
 {
     return this->ssid;
 }
 
-char* wireless::get_password()
+const char* wireless::get_password() const
 {
     return this->password;
 }
 
-char* wireless::get_clientIP()
+const IPAddress wireless::get_clientIP() const
 {
     return this->client_ip;
 }
-
-IPAddress wireless::get_serverIP()
+    
+const IPAddress wireless::get_serverIP() const
 {
     return WiFi.softAPIP();
 }
 
-int wireless::get_port()
+int wireless::get_port() const
 {
     return this->port;
 }
@@ -109,7 +121,7 @@ void wireless::send_float(float msg)
     udp.endPacket();
 }
 
-wl_status_t wireless::check_connection()
+wl_status_t wireless::check_connection() const
 {
     return (WiFi.status());
 }

@@ -6,9 +6,9 @@
 class wireless
 {
     private:
-        char* ssid;
-        char* password;
-        char* client_ip;
+        char ssid[64];
+        char password[32];
+        IPAddress client_ip;
         
         int port;
         
@@ -18,22 +18,22 @@ class wireless
     public:
         
         wireless();
-        void set_ssid(char* word);
-        void set_password(char* word);
-        void set_clientIP(char* ip);
+        void set_ssid(const char* word);
+        void set_password(const char* word);
+        void set_clientIP(IPAddress ip);
         void set_port(int num);
 
-        char* get_ssid();
-        char* get_password();
-        char* get_clientIP();
-        IPAddress get_serverIP();
-        int get_port();
+        const char* get_ssid() const;
+        const char* get_password() const;
+        const IPAddress get_clientIP() const;
+        const IPAddress get_serverIP() const;
+        int get_port() const;
         
         void connect_init();
         void send_int(int msg);
         void send_string(char* msg);
         void send_float(float msg);
-        wl_status_t check_connection();
+        wl_status_t check_connection() const;
 
 };
 
