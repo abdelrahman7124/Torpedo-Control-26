@@ -5,8 +5,8 @@
 #include "ethernet.h"
 #define TEST_MODE true
 #define NUM_THRUSTERS 4
-Servo thrusters[NUM_THRUSTERS];
-const int thrusterPins[NUM_THRUSTERS] = {0, 1, 2, 3};
+Servo thrusters[NUM_THRUSTERS+1];
+const int thrusterPins[NUM_THRUSTERS+1] = {0, 1, 2, 3, 4};
 const int freq = 5000;
 const int resolution = 8;
 void setupThrusters() {
@@ -25,6 +25,9 @@ void setupThrusters() {
         ledcWrite(2, 255);//down
         ledcWrite(3, 255);//left
     }
+    thrusters[NUM_THRUSTERS+1].attach(thrusterPins[NUM_THRUSTERS+1]);
+    thrusters[NUM_THRUSTERS+1].writeMicroseconds(1500);
+    pinMode(5, OUTPUT);
     
 }
 void parseAndDrive(char* packetBuffer) {
@@ -43,5 +46,14 @@ void parseAndDrive(char* packetBuffer) {
         
         thrusterIndex++;
         token = strtok(NULL, ",");
+    }
+    int val = atoi(token);
+    thrusters[NUM_THRUSTERS+1].writeMicroseconds(val);
+    token = strtok(NULL, ",");
+    int val = atoi(token);
+    if(val==1){
+        digitalWrite(5, HIGH);
+    } else {
+        digitalWrite(5, LOW);
     }
 }

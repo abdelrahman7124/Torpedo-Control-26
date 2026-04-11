@@ -1,43 +1,111 @@
-#include <Wire.h>
-#include <SFE_BMP180.h>
-SFE_BMP180 pressure;
+#include <Arduino.h>
+#include "imu.h"
+#include "ethernet.h"
+#include "pressureSensor.h"
+#include "thrusters.h"
+unsigned long previousMillis = 0;
 
-void setup(){
+float angleX = 0, angleY = 0, angleZ = 0;
+float threshold = 0.5;
+Pressure mySensor;
+unsigned long prevSendMillis = 0;
+unsigned long lastRcvdTime = 0;
+void setup() {
     Serial.begin(115200);
-    if (pressure.begin()){
-        Serial.println("its working");
+    while (!Serial);
+    mySensor.init();
+    Serial.println("Sensor Initialized.");
+    setupThrusters();
+    Serial.println("Thrusters Initialized.");
+    delay(1000);
+    int data = ethernet_setup(IPAddress(192,168,1,55), IPAddress(192,168,1,2), 9000, 5);
+    if(data == 2){
+        Serial.println("Ethernet initialized successfully.");
+    } else {
+        Serial.print("--");
+        Serial.print(data);
+        Serial.println("--");
+        Serial.println("Ethernet initialization failed!");
     }
-    else{
-        Serial.println("Not working\n");
-        while (1);
-    }
-}
-
-void loop(){
-    char status;
-    double T, P;
-    status = pressure.startTemperature();
-
-    if (status != 0){
-        delay(status);
-        status = pressure.getTemperature(T);
-        if (status != 0){
-            Serial.print("Temperature: ");
-            Serial.print(T, 2);
-            Serial.println(" °C");
-            status = pressure.startPressure(3);
-            if (status != 0){
-                delay(status);
-                status = pressure.getPressure(P, T);
-                if (status != 0){
-                    Serial.print("Absolute Pressure: ");
-                    Serial.print(P, 2);
-                    Serial.print(" mb / ");
-                    Serial.print(P * 0.02953, 2);
-                    Serial.println(" inHg");
-                }
-            }
+    Serial.println("Initializing IMU...");
+    Serial.println("KEEP SENSOR STATIONARY FOR CALIBRATION...");
+    mySensor.depthInitialization();
+    if (!imu_setup()) {
+        Serial.println("IMU initialization failed! Check connections.");
+        while(1) {
+            delay(1000);
+            Serial.println("System halted - IMU error");
         }
     }
-    delay(2000);
+
+    Serial.println("IMU Ready!");
+    // esc.writeMicroseconds(1500); // neutral
+    // delay(3000); // arming time
+}
+
+void loop() {
+    static unsigned long dhcpTimer = 0;
+    if (millis() - dhcpTimer > 2000) {
+        MaintainEthernet();
+        dhcpTimer = millis();
+    }
+    imu_update();
+    mySensor.update();
+    char* incomingCmd = checkIncomingUDP();
+    if(!checkNetworkHealth()){
+        Serial.println("Network issue detected. Attempting to recover...");
+        recoverNetwork();
+    }
+    if (incomingCmd != NULL) {
+        lastRcvdTime = millis();
+        Serial.print("---------------------------------RX: "); Serial.println(incomingCmd);
+        if(incomingCmd=="-1")ESP.restart();
+        parseAndDrive(incomingCmd);
+    } else {
+        static unsigned long waitTimer = 0;
+        if(millis() - waitTimer > 2000) {
+            Serial.print("Waiting for data on Port ");
+            Serial.println(9000);
+            waitTimer = millis();
+            resetUDP();
+        }
+    }
+    if (millis() - lastRcvdTime > 2000) {
+        for(int i=0; i<4; i++) ledcWrite(i, 0);
+    }
+    mySensor.display();
+    get_angles(angleX, angleY, angleZ, threshold);
+    if (millis() - previousMillis > 500) {
+        Serial.print("Pressure Sensor Data:");
+        Serial.println(mySensor.getDepth());
+        float dataArray[4] = {angleX, angleY, angleZ,mySensor.getDepth()};
+        sendDataArrayFloat(dataArray, 4);
+        Serial.print("Pitch(X): ");
+        Serial.print(angleX, 1);
+        Serial.print(" | Roll(Y): ");
+        Serial.print(angleY, 1);
+        Serial.print(" | Yaw(Z): ");
+        Serial.println(angleZ, 2);
+        previousMillis = millis();
+    }
+//    if (millis() - lastRcvdTime > 10000) {
+//        Serial.println("System Frozen. Rebooting...");
+//        delay(100);
+//        ESP.restart();
+//    }
+    // esc.writeMicroseconds(1500); // neutral
+    // delay(5000);
+    // esc.writeMicroseconds(1700); // forward
+    // delay(5000);
+
+    // esc.writeMicroseconds(1500); // stop
+    // delay(2000);
+
+    // // esc.writeMicroseconds(1400); // reverse
+    // // delay(5000);
+    // esc.writeMicroseconds(1300); // reverse
+    // delay(5000);
+    // esc.writeMicroseconds(1500); // neutral
+    // delay(5000);
+
 }
