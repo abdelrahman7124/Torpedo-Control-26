@@ -85,40 +85,42 @@ int wireless::get_port() const
     return this->port;
 }
 
+void wireless::update()
+{
+    if (!client || !client.connected())
+    {
+        LOG_WARN("%s", "Client disconnected!");
+        
+        client = server.available();
+        
+        if(client)
+        {
+            LOG_INFO("%s", "Client reconnected!");
+        }
+
+    }
+}
+
 void wireless::connect_init()
 {
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(this->ssid, this->password);
-    
-    if (!udp.begin(this->port))
+    server = WiFiServer(this->port);
+    server.begin();
+
+}
+
+void wireless::send_data(const String msg)
+{
+    update();
+    if(client && client.connected())
     {
-        LOG_ERROR("%s", "Failed to start UDP server!");
+        client.println(msg);
     }
     else
     {
-        LOG_INFO("%s", "UDP server started successfully!");
+        LOG_ERROR("%s", "No client connected! Cannot send data.");
     }
-}
-
-void wireless::send_int(int msg)
-{
-    udp.beginPacket(this->client_ip, this->port);
-    udp.print(msg);
-    udp.endPacket();
-}
-
-void wireless::send_string(char* msg)
-{
-    udp.beginPacket(this->client_ip, this->port);
-    udp.print(msg);
-    udp.endPacket();
-}
-
-void wireless::send_float(float msg)
-{
-    udp.beginPacket(this->client_ip, this->port);
-    udp.print(msg);
-    udp.endPacket();
 }
 
 wl_status_t wireless::check_connection() const

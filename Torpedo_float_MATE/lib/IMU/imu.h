@@ -1,7 +1,17 @@
+/*
+Author: Marwan Aly
+Project: IMU sensor interfacing
+Team: Torpedo ROV
+Discrption: Handles interfacing and data conversion for the MPU6050 sensor 
+*/
+
 #ifndef IMU_H
 #define IMU_H
 
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
 #include "config.h"
+
 
 
 class IMU

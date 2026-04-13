@@ -1,9 +1,7 @@
 #ifndef CONFIG_H
-#define CONFIG_H
+    #define CONFIG_H
 
     #include <Arduino.h>
-    #include <Adafruit_MPU6050.h>
-
 
     #define GREEN   "\x1b[32m"
     #define RED     "\x1b[31m"
@@ -28,8 +26,8 @@
 
         #else
             
-            #define LOG_INFO(fmt, ...) Serial.printf(GREEN"[INFO] " fmt "\n", __VA_ARGS__)
-            #define LOG_ERROR(fmt, ...) Serial.printf(RED"[ERROR] " fmt "\n", __VA_ARGS__)
+            #define LOG_INFO(fmt, ...) Serial.printf("[INFO] " fmt "\n", __VA_ARGS__)
+            #define LOG_ERROR(fmt, ...) Serial.printf("[ERROR] " fmt "\n", __VA_ARGS__)
 
         #endif
 

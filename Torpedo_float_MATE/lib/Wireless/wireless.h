@@ -1,3 +1,10 @@
+/*
+Author: Marwan Aly
+Project: Wireless Connection
+Team: Torpedo ROV
+Discrption: Handles wireless communication for ESP32 and send data by using the ESP32 as a WIFI access point
+*/
+
 #ifndef WIRELESS_H
 #define WIRELESS_H
 
@@ -12,8 +19,10 @@ class wireless
         
         int port;
         
-        WiFiUDP udp;
+        WiFiServer server;
+        WiFiClient client;
         
+        void update();
         
     public:
         
@@ -30,9 +39,7 @@ class wireless
         int get_port() const;
         
         void connect_init();
-        void send_int(int msg);
-        void send_string(char* msg);
-        void send_float(float msg);
+        void send_data(const String msg);
         wl_status_t check_connection() const;
 
 };

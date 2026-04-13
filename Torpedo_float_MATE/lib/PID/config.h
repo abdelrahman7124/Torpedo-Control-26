@@ -1,5 +1,5 @@
 #ifndef CONFIG_H
-#define CONFIG_H
+    #define CONFIG_H
 
     #include <Arduino.h>
 
@@ -45,9 +45,9 @@
             #define LOG_ERROR(fmt, ...) printf(RED"[ERROR] " fmt "\n", __VA_ARGS__)
 
         #else
-            #define LOG_INFO(fmt, ...) Serial.printf(GREEN"[INFO] " fmt "\n", __VA_ARGS__)
-            #define LOG_WARN(fmt, ...) Serial.printf(YELLOW"[WARN] " fmt "\n", __VA_ARGS__)
-            #define LOG_ERROR(fmt, ...) Serial.printf(RED"[ERROR] " fmt "\n", __VA_ARGS__)
+            #define LOG_INFO(fmt, ...) Serial.printf("[INFO] " fmt "\n", __VA_ARGS__)
+            #define LOG_WARN(fmt, ...) Serial.printf("[WARN] " fmt "\n", __VA_ARGS__)
+            #define LOG_ERROR(fmt, ...) Serial.printf("[ERROR] " fmt "\n", __VA_ARGS__)
 
         #endif
 

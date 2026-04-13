@@ -1,3 +1,11 @@
+/*
+Author: Marwan Aly
+Project: PID controller
+Team: Torpedo ROV
+Discrption: Handles PID controller logic and decision making for movement of an autonmous object 
+*/
+
+
 #ifndef PID_H
 #define PID_H
 #include "config.h"
