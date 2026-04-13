@@ -19,28 +19,17 @@ class EspToRos(Node):
         self.get_logger().info(f"Receiver Started. Listening on Port {LISTEN_PORT}")
 
     def check_udp_socket(self):
+        
         telemetry_dict = {
-                        "pitch": 0.0,
-                        "roll": 0.0,
-                        "yaw": 0.0,
-                        "depth": 0.0
-                    }
-        json_msg = json.dumps(telemetry_dict)
-        msg = String()
-        msg.data = json_msg
-        self.telemetry.publish(msg)
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.0,
+            "depth": 0.0
+        }
+        
         try:
             data, addr = self.sock.recvfrom(1024)
-            telemetry_dict = {
-                        "pitch": 0.0,
-                        "roll": 0.0,
-                        "yaw": 0.0,
-                        "depth": 0.0
-                    }
-            json_msg = json.dumps(telemetry_dict)
-            msg = String()
-            msg.data = json_msg
-            self.telemetry.publish(msg)
+            
             if data:
                 raw_text = data.decode('utf-8').strip()
                 
@@ -52,29 +41,21 @@ class EspToRos(Node):
                         "yaw": float(values[2]),
                         "depth": float(values[3])
                     }
-                    json_msg = json.dumps(telemetry_dict)
-                    msg = String()
-                    msg.data = json_msg
-                    self.telemetry.publish(msg)
+                    
                 except (ValueError, IndexError) as parse_error:
                     self.get_logger().warn(f"Failed to parse data '{raw_text}': {parse_error}")
 
-            else:
-                telemetry_dict = {
-                    "pitch": 0.0,
-                    "roll": 0.0,
-                    "yaw": 0.0,
-                    "depth": 0.0
-                }
-                json_msg = json.dumps(telemetry_dict)
-                msg = String()
-                msg.data = json_msg
-                self.telemetry.publish(msg)
-
+            
         except BlockingIOError:
             pass
         except Exception as e:
             self.get_logger().error(f"Socket Error: {e}")
+
+        json_msg = json.dumps(telemetry_dict)
+        msg = String()
+        msg.data = json_msg
+        self.telemetry.publish(msg)
+
 
 def main(args=None):
     rclpy.init(args=args)

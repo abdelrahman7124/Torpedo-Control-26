@@ -11,7 +11,7 @@ class RosToEsp(Node):
         super().__init__('ros_to_esp')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.esp_addr = (ESP_IP, ESP_PORT)
-        self.current_cmd = "1500,1500,1500,1500,1500,1500,0" 
+        self.current_cmd = "1500,1500,1500,1500,1500,1500,0,0" 
         self.subscription = self.create_subscription(
             String, 'esp_commands', self.command_callback, 10)
         self.timer = self.create_timer(0.1, self.send_udp_packet)

@@ -43,11 +43,11 @@ def generate_launch_description():
             executable='thrusters_factors',
             name='thrusters_factors_node',
         ),
-        #Node(
-        #    package='rov2026',
-        #    executable='gripper_controller',
-        #    name='gripper_controller',
-        #),
+        Node(
+           package='rov2026',
+           executable='gripper_controller',
+           name='gripper_controller',
+        ),
         Node(
             package='rov2026',
             executable='esp_commands_control',

@@ -34,7 +34,7 @@ setup(
             'rov_input = rov2026.rov_input:main',
             'thrusters_mixer = rov2026.thrusters_mixer:main',
             'thrusters_factors = rov2026.thrusters_factors:main',
-            #'gripper_controller = rov2026.gripper_controller:main',
+            'gripper_controller = rov2026.gripper_controller:main',
             'esp_commands_control = rov2026.esp_commands_control:main',
             'factors_gui = rov2026.factors_gui:main',
 
