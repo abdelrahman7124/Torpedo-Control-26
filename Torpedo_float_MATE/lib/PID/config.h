@@ -12,14 +12,24 @@
     #define KI_INITIAL 0.1
     #define KD_INITIAL 0.05
 
-    #define STEP_SIZE 0.01
+    #define KP_STEP_UP 1.005
+    #define KP_STEP_DOWN 0.995 
+    #define KI_STEP_UP 1.0007
+    #define KI_STEP_DOWN 0.9998
+    #define KD_STEP_UP 1.01
+    #define KD_STEP_DOWN 0.99
+    #define OVERSHOOT_SMALL_RESET 0.95
+    #define OVERSHOOT_LARGE_RESET 0.5
 
-    #define MIN_OUTPUT_THRESHOLD 1100.00
-    #define MAX_OUTPUT_THRESHOLD 1900.00
-    #define NORMALIZTION_PARAMETER 1500.00
+    #define LOW_PASS_FILTER_VALUE 0.02
 
-    #define DISTANCE_THRESHOLD 200
-    #define DIFFERENCE_THRESHOLD 5
+    #define MIN_OUTPUT_THRESHOLD -255
+    #define MAX_OUTPUT_THRESHOLD 255
+    #define NORMALIZTION_PARAMETER 0
+
+    #define MEAN_THRESHOLD 2.0
+    #define VARIANCE_THRESHOLD 10.0
+    #define OVERSHOOT_THRESHOLD 5
     #define GOAL_THRESHOLD 10.00
     
     #define KP_MAX_THRESHOLD 10.0
