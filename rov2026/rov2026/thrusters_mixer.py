@@ -39,19 +39,7 @@ class ThrustersMixer(Node):
             pwm_msg.data = pwm
             self.pwm_pub.publish(pwm_msg)
 
-            """esp_msg = String()
-            esp_msg.data = json.dumps({
-                'thruster_1': pwm[0],
-                'thruster_2': pwm[1],
-                'thruster_3': pwm[2],
-                'thruster_4': pwm[3],
-                'thruster_5': pwm[4],
-                'thruster_6': pwm[5],
-            })
             
-            esp_msg.data = f"{pwm[0]},{pwm[1]},{pwm[2]},{pwm[3]},{pwm[4]},{pwm[5]}"
-            self.esp_pub.publish(esp_msg)"""
-
         except json.JSONDecodeError as e:
             self.get_logger().error(f"❗ JSON decode error in cmd_callback: {e}")
 

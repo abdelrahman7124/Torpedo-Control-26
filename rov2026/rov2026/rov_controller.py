@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32
 import json
 from .pid import PID
 
@@ -9,9 +9,9 @@ class ROVController(Node):
     def __init__(self):
         super().__init__('controller')
 
-        self.yaw_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True, output_limits=(-1.0, 1.0))
-        self.depth_pid = PID(kp=1.0, ki=0.02, kd=0.1, is_angular=False, output_limits=(-1.0, 1.0))
-        self.pitch_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True, output_limits=(-1.0, 1.0))
+        self.yaw_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True)
+        self.depth_pid = PID(kp=1.0, ki=0.02, kd=0.1, is_angular=False)
+        self.pitch_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True)
 
         self.initialized = False
 
@@ -34,11 +34,19 @@ class ROVController(Node):
         self.YAW_RATE = 2.0
         self.DEPTH_RATE = 0.02
 
+        self.speed_factor = 1.0
+
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
         self.create_subscription(String, 'rov_telemetry', self.telemetry_callback, 10)
+        self.create_subscription(Float32, 'speed_factor', self.speed_callback, 10)
         self.cmd_pub = self.create_publisher(String, 'rov_commands', 10)
 
         self.get_logger().info("✅ Controller started")
+
+    def speed_callback(self, msg):
+        self.speed_factor = msg.data
+        self.yaw_pid.set_output_limits((-self.speed_factor, self.speed_factor))
+        self.depth_pid.set_output_limits((-self.speed_factor, self.speed_factor))
 
     def joy_callback(self, msg):
         try:
@@ -65,6 +73,9 @@ class ROVController(Node):
                 self.yaw_pid.set_setpoint(self.target_yaw)
                 self.depth_pid.set_setpoint(self.target_depth)
                 self.pitch_pid.set_setpoint(0.0)
+                self.yaw_pid.set_output_limits((-1.0, 1.0))
+                self.depth_pid.set_output_limits((-1.0, 1.0))
+                self.pitch_pid.set_output_limits((-1.0, 1.0))
                 self.initialized = True
                 self.get_logger().info(
                     f"✅ Initialized - Yaw: {self.target_yaw:.1f}°, "
@@ -96,7 +107,9 @@ class ROVController(Node):
             pass
 
     def compute_yaw(self, active):
+        
         if active:
+        
             self.target_yaw += self.joy_yaw * self.YAW_RATE
             while self.target_yaw > 180.0:
                 self.target_yaw -= 360.0

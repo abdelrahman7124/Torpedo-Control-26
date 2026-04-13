@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import Float32, String
 import json
 
 
@@ -18,7 +18,7 @@ class ROVInput(Node):
         self.BTN_MED_SPEED = 6
         self.BTN_HIGH_SPEED = 7
 
-        self.DEADZONE = 0.1
+        self.DEADZONE = 0.5
 
         self.speed_mode = "continuous"
         self.speed_levels = [0.33, 0.66, 1]
@@ -31,14 +31,18 @@ class ROVInput(Node):
         self.create_subscription(String, 'joy_raw', self.joy_callback, 10)
         
         self.joy_pub = self.create_publisher(String, 'joy_processed', 10)
+        self.speed_pub = self.create_publisher(Float32, 'speed_factor', 10)
 
         self.get_logger().info("✅ ROVInput node started")
     
     def is_btn_pressed(self, buttons, index):
-        
+        if not self.prev_buttons or index >= len(self.prev_buttons):
+            return False
         return buttons[index] == 1 and self.prev_buttons[index] == 0
     
     def handle_speed(self, buttons):
+
+        speed_factor = 1
 
         if self.is_btn_pressed(buttons, self.BTN_TOGGLE_MODE):
             if self.speed_mode == 'continuous':
@@ -59,6 +63,12 @@ class ROVInput(Node):
             elif self.is_btn_pressed(buttons, self.BTN_HIGH_SPEED):
                 self.speed_index = 2
                 self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
+
+            speed_factor = self.speed_levels[self.speed_index]
+            
+        msg = Float32()
+        msg.data = float(speed_factor)
+        self.speed_pub.publish(msg)
 
     def set_speed(self, value):
         if self.speed_mode == 'discrete':

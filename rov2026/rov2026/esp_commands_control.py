@@ -7,7 +7,7 @@ class EspCommandsControl(Node):
         super().__init__('esp_commands_control')
 
         self.thruster_pwm = [1500, 1500, 1500, 1500, 1500, 1500]
-        self.gripper_data = [0, 0]
+        self.gripper_data = [1500, 0]
 
         self.create_subscription(Int32MultiArray, 'thruster_cmd', self.thruster_callback, 10)
         self.create_subscription(Int32MultiArray, 'gripper_cmd', self.gripper_callback, 10)

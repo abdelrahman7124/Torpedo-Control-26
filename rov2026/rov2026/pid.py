@@ -1,27 +1,26 @@
-import math
-
 class PID:
-    def __init__(self, kp, ki, kd, is_angular=False, output_limits=(-1.0, 1.0)):
+    def __init__(self, kp, ki, kd, is_angular=False):
         self.kp = kp
         self.ki = ki
         self.kd = kd
         self.is_angular = is_angular
-        self.output_limits = output_limits
+        self.output_limits = (-1, 1)
 
         self.setpoint = 0.0
         self.integral = 0.0
-        self.prev_error = 0.0
-
-        self.reset()
+        self.prev_error = None
     
     def reset(self):
         self.integral = 0.0
-        self.prev_error = 0.0
+        self.prev_error = None
 
     def set_setpoint(self, setpoint):
         self.setpoint = setpoint
         self.integral = 0.0
-        self.prev_error = 0.0
+        self.prev_error = None
+
+    def set_output_limits(self, limits):
+        self.output_limits = limits
 
     def compute(self, measurement):
 
