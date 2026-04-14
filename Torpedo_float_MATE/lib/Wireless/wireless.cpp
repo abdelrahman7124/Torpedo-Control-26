@@ -1,11 +1,18 @@
+/*
+Author: Marwan Aly
+Project: Wireless Connection
+Team: Torpedo ROV
+Description: Handles wireless communication for ESP8266 and send data by using the ESP8266 as a WIFI access point
+*/
+
 #include "wireless.h"
 
-wireless::wireless()
+wireless::wireless() : server(0)
 {
-    strncpy(this->ssid ,DEFAULT_SSID, sizeof(this->ssid));
+    strncpy(this->ssid, DEFAULT_SSID, sizeof(this->ssid));
     this->ssid[sizeof(this->ssid) - 1] = '\0';
     
-    strncpy(this->password ,DEFAULT_PASSWORD,sizeof(this->password));
+    strncpy(this->password, DEFAULT_PASSWORD, sizeof(this->password));
     this->password[sizeof(this->password) - 1] = '\0';
 
     this->client_ip = DEFAULT_CLIENT_IP;
@@ -14,7 +21,7 @@ wireless::wireless()
 
 void wireless::set_ssid(const char* word)
 {
-    strncpy(this->ssid ,word, sizeof(this->ssid));
+    strncpy(this->ssid, word, sizeof(this->ssid));
     this->ssid[sizeof(this->ssid) - 1] = '\0';
     LOG_INFO("SSID set to: %s", this->ssid);
 }
@@ -26,15 +33,14 @@ void wireless::set_password(const char* word)
         LOG_ERROR("%s", "Password must be at least 8 characters long!");
         return;
     }
-    
     else
     {
-        if(strlen(word) >= sizeof(this->password))
+        if (strlen(word) >= sizeof(this->password))
         {
             LOG_WARN("%s", "Password is too long! Maximum length is 31 characters.");
         }
 
-        strncpy(this->password ,word, sizeof(this->password));
+        strncpy(this->password, word, sizeof(this->password));
         this->password[sizeof(this->password) - 1] = '\0';
         LOG_INFO("Password set to: %s", this->password);
     }
@@ -48,12 +54,11 @@ void wireless::set_clientIP(IPAddress msg)
 
 void wireless::set_port(int num)
 {
-    if((num > MIN_PORT) && (num < MAX_PORT))
+    if ((num > MIN_PORT) && (num < MAX_PORT))
     {
         this->port = num;
         LOG_INFO("Port set to: %d", this->port);
     }
-    
     else
     {
         LOG_ERROR("%s", "Port is not available!");
@@ -74,7 +79,7 @@ const IPAddress wireless::get_clientIP() const
 {
     return this->client_ip;
 }
-    
+
 const IPAddress wireless::get_serverIP() const
 {
     return WiFi.softAPIP();
@@ -93,17 +98,16 @@ void wireless::update()
         
         client = server.available();
         
-        if(client)
+        if (client)
         {
             LOG_INFO("%s", "Client reconnected!");
         }
-
     }
 }
 
 void wireless::connect_init()
 {
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_AP);
     WiFi.softAP(this->ssid, this->password);
     server = WiFiServer(this->port);
     server.begin();
@@ -112,7 +116,7 @@ void wireless::connect_init()
 void wireless::send_data(const String msg)
 {
     update();
-    if(client && client.connected())
+    if (client && client.connected())
     {
         client.println(msg);
     }
@@ -124,5 +128,5 @@ void wireless::send_data(const String msg)
 
 wl_status_t wireless::check_connection() const
 {
-    return (WiFi.status());
+    return WiFi.status();
 }

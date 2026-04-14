@@ -2,13 +2,13 @@
 Author: Marwan Aly
 Project: Wireless Connection
 Team: Torpedo ROV
-Description: Handles wireless communication for ESP32 and send data by using the ESP32 as a WIFI access point
+Description: Handles wireless communication for ESP8266 and send data by using the ESP8266 as a WIFI access point
 */
 
 #ifndef WIRELESS_H
 #define WIRELESS_H
 
-#include <WiFi.h>
+#include <ESP8266WiFi.h>
 #include <Arduino.h>
 
 #include "config.h"
@@ -44,12 +44,6 @@ class wireless
         void connect_init();
         void send_data(const String msg);
         wl_status_t check_connection() const;
-
 };
-
-
-
-
-
 
 #endif
