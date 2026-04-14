@@ -2,7 +2,7 @@
 Author: Marwan Aly
 Project: PID controller
 Team: Torpedo ROV
-Discrption: Handles PID controller logic and decision making for movement of an autonmous object 
+Description: Handles PID controller logic and decision making for movement of an autonmous object 
 */
 
 

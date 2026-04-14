@@ -2,7 +2,7 @@
 Author: Marwan Aly
 Project: BMP180 Pressure Sensor
 Team: Torpedo ROV
-Discrption: Handles interfaceing and reterival of data from the BMP180 pressure sensor
+Description: Handles interfaceing and reterival of data from the BMP180 pressure sensor
 */
 
 #ifndef BMP_H

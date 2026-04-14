@@ -2,7 +2,7 @@
 Author: Marwan Aly
 Project: Controls
 Team: Torpedo ROV
-Discrption: Handles the basic control logic of the system 
+Description: Handles the basic control logic of the system 
 */
 
 #ifndef CONTROL_H

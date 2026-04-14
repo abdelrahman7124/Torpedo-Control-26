@@ -107,7 +107,6 @@ void wireless::connect_init()
     WiFi.softAP(this->ssid, this->password);
     server = WiFiServer(this->port);
     server.begin();
-
 }
 
 void wireless::send_data(const String msg)
