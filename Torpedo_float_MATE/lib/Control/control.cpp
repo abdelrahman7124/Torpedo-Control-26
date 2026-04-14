@@ -19,7 +19,7 @@ Control::Control()
 void Control::up()
 {
     this->balance_flag = false;
-    if(digitalRead(UPPER_LIMIT_SWITCH_PIN) == LOW)
+    if(digitalRead(UPPER_LIMIT_SWITCH_PIN) == HIGH)
     {
         analogWrite(MOTOR_PIN_1, this->power_up);
     }
@@ -33,7 +33,7 @@ void Control::down()
     this->balance_flag = false;
     analogWrite(MOTOR_PIN_1, MIN_MOTOR_OUTPUT);
     
-    if(digitalRead(LOWER_LIMIT_SWITCH_PIN) == LOW)
+    if(digitalRead(LOWER_LIMIT_SWITCH_PIN) == HIGH)
     {
         analogWrite(MOTOR_PIN_2, this->power_down);
     }
