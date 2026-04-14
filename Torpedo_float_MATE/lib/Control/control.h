@@ -8,7 +8,7 @@ Description: Handles the basic control logic of the system
 #ifndef CONTROL_H
     #define CONTROL_H
     #include <Arduino.h>
-    #include "config.h"
+    #include "control_config.h"
     #include "pid.h"
     #include "bmp.h"
 
@@ -20,9 +20,9 @@ Description: Handles the basic control logic of the system
             volatile float goal;
             volatile float reading;
             bool balance_flag;
-            double time;
-            double prev_time;
-            double dt;
+            unsigned long control_current_time;
+            unsigned long control_prev_time;
+            double control_dt;
             int power_up;
             int power_down;
 

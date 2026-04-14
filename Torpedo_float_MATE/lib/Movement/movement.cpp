@@ -7,9 +7,9 @@ Movement::Movement()
     this->current_depth = 0.00;
     this->target_depth = 0.00;
     this->prev_target_depth = 0.00;
-    this->time = 0.00;
-    this->prev_time = 0.00;
-    this->dt = 0.00;
+    this->movement_current_time = 0.00;
+    this->movement_prev_time = 0.00;
+    this->movement_dt = 0.00;
     this->hold_flag = false;
     this->dive_flag = false;
     this->rise_flag = false;
@@ -32,20 +32,20 @@ int Movement::dive(float depth)
     }
     
     
-    this->time = millis();
+    this->movement_current_time = millis();
     
-    if(this->prev_time == 0)
+    if(this->movement_prev_time == 0)
     {
-        this->prev_time = this->time;
+        this->movement_prev_time = this->movement_current_time;
         return DIVING;
     }
 
     this->current_depth = this->bmp.readDepth();
     this->pid.set_reading(this->current_depth);
     
-    this->dt = (this->time - this->prev_time)/MILLISECOND_IN_SECOND;
-    this->pid.set_dt(this->dt);
-    this->prev_time = this->time;
+    this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
+    this->pid.set_dt(this->movement_dt);
+    this->movement_prev_time = this->movement_current_time;
 
     double output = this->pid.run();
     
@@ -70,26 +70,26 @@ int Movement::dive(float depth)
     }
 }
 
-int Movement::hold(float time)
+int Movement::hold(float duration)
 {   
-    this->time = millis();
+    this->movement_current_time = millis();
 
     if(!this->hold_flag) 
     {
-        this->prev_time = this->time;
+        this->movement_prev_time = this->movement_current_time;
         this->hold_flag = true;
     }
 
-    this->dt = (this->time - this->prev_time)/MILLISECOND_IN_SECOND;
+    this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
     
-    if(this->dt < time)
+    if(this->movement_dt < duration)
     {
         control.hover();
-        return HOLDING;
+        return HOVERING;
     }
 
     this->hold_flag = false;
-    this->dt = 0.00;
+    this->movement_dt = 0.00;
     return IDLE;
 }
 
@@ -104,20 +104,20 @@ int Movement::rise_to_surface()
     
     this->current_depth = this->bmp.readDepth();
     
-    this->time = millis();
+    this->movement_current_time = millis();
     
-    if(this->prev_time == 0)
+    if(this->movement_prev_time == 0)
     {
-        this->prev_time = this->time;
+        this->movement_prev_time = this->movement_current_time;
         return SURFACING;
     }
     
-    this->dt = (this->time - this->prev_time)/MILLISECOND_IN_SECOND;
+    this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
 
     this->pid.set_reading(this->current_depth);
-    this->pid.set_dt(this->dt);
+    this->pid.set_dt(this->movement_dt);
 
-    this->prev_time = this->time;
+    this->movement_prev_time = this->movement_current_time;
 
     double output = this->pid.run();
 

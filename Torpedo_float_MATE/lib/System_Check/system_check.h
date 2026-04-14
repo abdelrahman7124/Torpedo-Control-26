@@ -7,7 +7,7 @@ Description: Checks all sencors,acutators and communications of the system to en
 
 #ifndef SYSTEM_CHECK_H
     #define SYSTEM_CHECK_H
-    #include "config.h"
+    #include "system_check_config.h"
     #include <Arduino.h>
     #include "control.h"
     #include "bmp.h"

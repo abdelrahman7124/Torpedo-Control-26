@@ -7,7 +7,7 @@ Description: Handles the movement logic of the system
 
 #ifndef MOVEMENT_H
     #define MOVEMENT_H
-    #include "config.h"
+    #include "movement_config.h"
     #include "control.h"
     #include "bmp.h"
     #include <pid.h>
@@ -19,7 +19,7 @@ Description: Handles the movement logic of the system
             { 
                 IDLE = 0, 
                 DIVING = 1, 
-                HOLDING = 2, 
+                HOVERING = 2, 
                 SURFACING = 3,
             };
 
@@ -31,9 +31,9 @@ Description: Handles the movement logic of the system
             float current_depth;
             float target_depth;
             float prev_target_depth;
-            double time;
-            double prev_time;
-            double dt;
+            unsigned long movement_current_time;
+            unsigned long movement_prev_time;
+            double movement_dt;
             bool hold_flag;
             bool dive_flag;
             bool rise_flag;

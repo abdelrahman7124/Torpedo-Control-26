@@ -11,7 +11,7 @@ Description: Handles wireless communication for ESP8266 and send data by using t
 #include <ESP8266WiFi.h>
 #include <Arduino.h>
 
-#include "config.h"
+#include "wireless_config.h"
 
 class wireless
 {

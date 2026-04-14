@@ -4,10 +4,10 @@ BMP::BMP()
 {
     this->pressure = 0.0;
     this->depth = 0.0;
-    this->time_sec = 0.0;
-    this->time_min = 0.0;
-    this->time_hr = 0.0;
-    this->time = 0.0;
+    this->time_sec = 0;
+    this->time_min = 0;
+    this->time_hr = 0;
+    this->bmp_time = 0;
     this->time_sec_msg = "";
     this->time_min_msg = "";
     this->time_hr_msg = "";
@@ -24,7 +24,7 @@ void BMP::init()
 
 float BMP::readPressure()
 {
-    this->pressure = bmp.readPressure();
+    this->pressure = filter.filter(bmp.readPressure());
     return this->pressure;
 }
 
@@ -37,10 +37,10 @@ float BMP::readDepth()
 
 String BMP::getTime()
 {
-    this->time = millis() / 1000.0;
-    this->time_sec = this->time % SECONDS_IN_MINUTE;
-    this->time_min = (this->time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
-    this->time_hr = (this->time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
+    this->bmp_time = millis() / 1000.0;
+    this->time_sec = this->bmp_time % SECONDS_IN_MINUTE;
+    this->time_min = (this->bmp_time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
+    this->time_hr = (this->bmp_time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
     
     if (this->time_hr < 10)
     {

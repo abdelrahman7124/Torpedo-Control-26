@@ -7,9 +7,9 @@ Control::Control()
     this->goal = 0.0;
     this->reading = 0.0;
     this->balance_flag = false;
-    this->time = 0.0;
-    this->prev_time = 0.0;
-    this->dt = 0.0;
+    this->control_current_time = 0;
+    this->control_prev_time = 0;
+    this->control_dt = 0.0;
     this->power_up = 0;
     this->power_down = 0;
 }
@@ -54,7 +54,7 @@ void Control::setPower_down(int power)
 
 void Control::hover() 
 {   
-    this->time = millis();
+    this->control_current_time = millis();
 
     if(!this->balance_flag) 
     {
@@ -62,13 +62,13 @@ void Control::hover()
         this->pid.set_goal(this->goal);
         LOG_INFO("Entering balance mode with goal depth %.2f", this->goal);
 
-        this->prev_time = this->time;
+        this->control_prev_time = this->control_current_time;
         this->balance_flag = true;
     }
 
-    this->dt = (this->time - this->prev_time)/ MILLISECOND_IN_SECOND;
-    pid.set_dt(this->dt);
-    this->prev_time = this->time;
+    this->control_dt = (this->control_current_time - this->control_prev_time)/ MILLISECOND_IN_SECOND;
+    pid.set_dt(this->control_dt);
+    this->control_prev_time = this->control_current_time;
 
     this->reading = bmp.readDepth();
     this->pid.set_reading(this->reading);

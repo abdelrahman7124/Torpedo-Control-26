@@ -11,18 +11,20 @@ Description: Handles interfaceing and reterival of data from the BMP180 pressure
     #include <Adafruit_BMP085.h>
     #include <Wire.h>
     #include <Arduino.h>
-    #include "config.h"
+    #include "filters.h"
+    #include "bmp_config.h"
 
     class BMP
     {
         private:
             Adafruit_BMP085 bmp;
+            KALMAN  filter;
             float pressure;
             float depth;
             int time_sec;
             int time_min;
             int time_hr;
-            unsigned long time;
+            unsigned long bmp_time;
             String time_sec_msg;
             String time_min_msg;
             String time_hr_msg;

@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-    #define CONFIG_H    
+#ifndef SYSTEM_CHECK_CONFIG_H
+    #define SYSTEM_CHECK_CONFIG_H    
     #define GREEN   "\x1b[32m"
     #define YELLOW  "\x1b[33m"
     #define RED     "\x1b[31m"

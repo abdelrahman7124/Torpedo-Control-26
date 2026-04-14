@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-    #define CONFIG_H
+#ifndef BMP_CONFIG_H
+    #define BMP_CONFIG_H
 
     #define GREEN   "\x1b[32m"
     #define YELLOW  "\x1b[33m"
