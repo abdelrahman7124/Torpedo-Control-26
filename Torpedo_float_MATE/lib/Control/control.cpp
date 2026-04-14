@@ -4,6 +4,8 @@ Control::Control()
 {
     pinMode(MOTOR_PIN_1, OUTPUT);
     pinMode(MOTOR_PIN_2, OUTPUT);
+    pinMode(UPPER_LIMIT_SWITCH_PIN, INPUT);
+    pinMode(LOWER_LIMIT_SWITCH_PIN, INPUT);
     this->goal = 0.0;
     this->reading = 0.0;
     this->balance_flag = false;
@@ -17,7 +19,11 @@ Control::Control()
 void Control::up()
 {
     this->balance_flag = false;
-    analogWrite(MOTOR_PIN_1, this->power_up);
+    if(digitalRead(UPPER_LIMIT_SWITCH_PIN) == LOW)
+    {
+        analogWrite(MOTOR_PIN_1, this->power_up);
+    }
+    
     analogWrite(MOTOR_PIN_2, MIN_MOTOR_OUTPUT);
     LOG_INFO("Moving up with power %d", this->power_up);
 }
@@ -26,7 +32,12 @@ void Control::down()
 {
     this->balance_flag = false;
     analogWrite(MOTOR_PIN_1, MIN_MOTOR_OUTPUT);
-    analogWrite(MOTOR_PIN_2, this->power_down);
+    
+    if(digitalRead(LOWER_LIMIT_SWITCH_PIN) == LOW)
+    {
+        analogWrite(MOTOR_PIN_2, this->power_down);
+    }
+
     LOG_INFO("Moving down with power %d", this->power_down);
 }
 

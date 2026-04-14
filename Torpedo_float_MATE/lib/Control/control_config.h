@@ -7,6 +7,9 @@
     #define MOTOR_PIN_1  5
     #define MOTOR_PIN_2  6
 
+    #define UPPER_LIMIT_SWITCH_PIN 2
+    #define LOWER_LIMIT_SWITCH_PIN 3
+
     #define MAX_MOTOR_OUTPUT 255
     #define MIN_MOTOR_OUTPUT 0 
     
