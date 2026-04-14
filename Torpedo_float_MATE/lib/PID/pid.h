@@ -2,7 +2,7 @@
 Author: Marwan Aly
 Project: PID controller
 Team: Torpedo ROV
-Discrption: Handles PID controller logic and decision making for movement of an autonmous object 
+Description: Handles PID controller logic and decision making for movement of an autonmous object 
 */
 
 
@@ -25,6 +25,12 @@ class PID
         float goal;
         float dt;
         
+        float mean_error;
+        float error_variance;
+        float last_error;
+        float overshoot_count;
+
+        void update();
         void adapt();
         double clamp(double value, double min_threshold, double max_threshold);
 

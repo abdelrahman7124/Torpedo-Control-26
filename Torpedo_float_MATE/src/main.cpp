@@ -8,7 +8,7 @@ void setup()
     connection.connect_init();
 }
 
-void loop() 
+void loop()
 {
     depth = pressure.readDepth();
     pressure_value = pressure.readPressure();

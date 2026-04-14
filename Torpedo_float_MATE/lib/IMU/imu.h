@@ -2,7 +2,7 @@
 Author: Marwan Aly
 Project: IMU sensor interfacing
 Team: Torpedo ROV
-Discrption: Handles interfacing and data conversion for the MPU6050 sensor 
+Description: Handles interfacing and data conversion for the MPU6050 sensor 
 */
 
 #ifndef IMU_H

@@ -2,11 +2,14 @@
 Author: Marwan Aly
 Project: Wireless Connection
 Team: Torpedo ROV
-Discrption: Handles wireless communication for ESP32 and send data by using the ESP32 as a WIFI access point
+Description: Handles wireless communication for ESP32 and send data by using the ESP32 as a WIFI access point
 */
 
 #ifndef WIRELESS_H
 #define WIRELESS_H
+
+#include <WiFi.h>
+#include <Arduino.h>
 
 #include "config.h"
 

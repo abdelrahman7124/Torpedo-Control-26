@@ -12,6 +12,10 @@ PID::PID()
     this->prev_error = 0.0;
     this->goal = 0.0;
     this->dt = 0.0;
+    this->mean_error = 0.0;
+    this->error_variance = 0.0;
+    this->last_error = 0.0;
+    this->overshoot_count = 0.0;
 }
 
 PID::~PID()
@@ -39,6 +43,8 @@ void PID::set_kd(float parameter)
 
 void PID::set_goal(float parameter)
 {
+    this->sum = 0.00;
+    this->prev_error = 0.00;
     this->goal = parameter;
     LOG_INFO("%s", "Goal set");
 }
@@ -92,10 +98,6 @@ double PID::run()
 
     if(abs(this->error) <= GOAL_THRESHOLD)
     {
-        this->sum = 0.00;
-        this->diff = 0.00;
-        this->error = 0.00;
-        this->prev_error = 0.00;
         return NORMALIZTION_PARAMETER;
     }
 
@@ -111,7 +113,7 @@ double PID::run()
         this->sum +=  (this->dt/2) * (this->error + this->prev_error);
         this->sum = PID::clamp(this->sum, MIN_INTEGRAL_THRESHOLD, MAX_INTEGRAL_THRESHOLD);
         
-        this->diff = (this->prev_error - this->error)/this->dt;
+        this->diff = (this->error - this->prev_error)/this->dt;
     }
 
     double output = (this->kp * error) + (this->ki * sum) + (this->kd * diff) + NORMALIZTION_PARAMETER;
@@ -121,37 +123,62 @@ double PID::run()
     return output;
 }
 
+void PID::update()
+{
+    this->mean_error = (1 - LOW_PASS_FILTER_VALUE) * this->mean_error + LOW_PASS_FILTER_VALUE * this->error;
+    
+    float deviation = this->error - this->mean_error;
+    this->error_variance = (1 - LOW_PASS_FILTER_VALUE) * this->error_variance + LOW_PASS_FILTER_VALUE * deviation * deviation;
+
+    if ((((this->error) > 0) && ((this->last_error) < 0) ) || (((this->error) < 0) && ((this->last_error) > 0))) 
+    {
+        if(abs(this->error) > GOAL_THRESHOLD)
+        {
+            this->overshoot_count++;
+        }
+    }
+    this->last_error = this->error; 
+}
+
 void PID::adapt()
 {
-    if(this->error > DISTANCE_THRESHOLD)
+    update();
+
+    if(abs(this->mean_error) > MEAN_THRESHOLD)
     {
-        this->kp += STEP_SIZE;
+        this->ki *= KI_STEP_UP;
+    }
+    else
+    {
+        this->ki *= KI_STEP_DOWN;
+    }
+
+
+    if(this->error_variance > VARIANCE_THRESHOLD)
+    {
+        this->kp *= KP_STEP_DOWN;
+        this->kd *= KD_STEP_UP;
     }
 
     else
     {
-        this->kp -= STEP_SIZE;
+        this->kp *= KP_STEP_UP;
+        this->kd *= KD_STEP_DOWN;
     }
 
-    if(this->error < DISTANCE_THRESHOLD)
+    if(this->overshoot_count > OVERSHOOT_THRESHOLD)
     {
-        this->ki += STEP_SIZE;
-    }
-
-    else
-    {
-        this->ki -= STEP_SIZE;
-    }
-
-    if(this->diff > DIFFERENCE_THRESHOLD)
-    {
-        this->kd += STEP_SIZE;
+        this->kp *= KP_STEP_DOWN;
+        this->kd *= KD_STEP_UP;
+        this->overshoot_count *= OVERSHOOT_SMALL_RESET;
     }
 
     else
     {
-        this->kd -= STEP_SIZE;
+        this->overshoot_count *= OVERSHOOT_LARGE_RESET;
     }
+
+
 
     this->kp = PID::clamp(this->kp,KP_MIN_THRESHOLD,KP_MAX_THRESHOLD);
     this->ki = PID::clamp(this->ki,KI_MIN_THRESHOLD,KI_MAX_THRESHOLD);

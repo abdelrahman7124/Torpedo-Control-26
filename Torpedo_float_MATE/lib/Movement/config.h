@@ -3,6 +3,11 @@
     #define GREEN   "\x1b[32m"
     #define YELLOW  "\x1b[33m"
 
+    #define SEA_LEVEL_DEPTH 0.00
+    #define DEPTH_THRESHOLD 2.00
+    #define SURFACE_THRESHOLD 0.50
+
+    #define MILLISECOND_IN_SECOND 1000.00
 
     #ifndef ENABLE_LOGGING
         #define ENABLE_LOGGING 1
