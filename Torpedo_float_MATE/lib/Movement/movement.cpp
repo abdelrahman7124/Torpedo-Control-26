@@ -58,9 +58,9 @@ int Movement::dive(float depth)
 
     else if (output < -DEPTH_THRESHOLD)
     {
-    this->control.setPower_up(abs(output));
-    this->control.up();
-    return SURFACING;
+        this->control.setPower_up(abs(output));
+        this->control.up();
+        return SURFACING;
     }
 
     else

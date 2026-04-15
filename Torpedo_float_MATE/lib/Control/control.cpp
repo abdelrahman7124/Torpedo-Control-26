@@ -87,14 +87,14 @@ void Control::hover()
 
     if (output > HOVER_THRESHOLD) 
     {
-        setPower_up(output);
-        up();
+        setPower_down(output);
+        down();
     }
 
     else if (output < -HOVER_THRESHOLD) 
     {
-        setPower_down(abs(output));
-        down();
+        setPower_up(abs(output));
+        up();
     } 
 
     else 
