@@ -41,6 +41,7 @@ Description: The main file that handles the whole system
     void send_msg();
     int execute_mission();
     void sample_readings();
+    String getTime();
 
     std::queue <pressure_data> pressure_log;
 
@@ -50,9 +51,19 @@ Description: The main file that handles the whole system
 
     float depth;
     float pressure;
+    
     String time_stamp;
     
     String msg;
+
+    int transmission_time;
+    int time_sec;
+    int time_min;
+    int time_hr;
+
+    String time_sec_msg;
+    String time_min_msg;
+    String time_hr_msg;
 
     unsigned long sampling_current_time;
     unsigned long sampling_prev_time;

@@ -43,7 +43,6 @@ void get_bmp_readings()
     pressure_data data;
     data.depth = bmp.readDepth();
     data.pressure = bmp.readPressure();
-    data.time_stamp = bmp.getTime();
     pressure_log.push(data);
 }
 
@@ -52,9 +51,9 @@ void send_msg()
 {
     while(!pressure_log.empty())
     { 
-        time_stamp = pressure_log.front().time_stamp;
         depth = pressure_log.front().depth;
         pressure = pressure_log.front().pressure;
+        time_stamp = getTime();
 
         msg = time_stamp + "," + String(depth) + "," + String(pressure);
         
@@ -140,4 +139,47 @@ int execute_mission()
         return SURFACING;
     }
     return RESET;
+}
+
+
+String getTime()
+{
+    transmission_time = millis() / MILLISECOND_IN_SECOND;
+    time_sec = transmission_time % SECONDS_IN_MINUTE;
+    time_min = (transmission_time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
+    time_hr = (transmission_time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
+    
+    if (time_hr < 10)
+    {
+        time_hr_msg = "0" + String(time_hr);
+    }
+    
+    else
+    {
+        time_hr_msg = String(time_hr);
+    }
+
+    if (time_min < 10)
+    {
+        time_min_msg = "0" + String(time_min);
+    }
+
+    else
+    {
+        time_min_msg = String(time_min);
+    }
+
+    if (time_sec < 10)
+    {
+        time_sec_msg = "0" + String(time_sec);
+    }
+
+    else
+    {
+        time_sec_msg = String(time_sec);
+    }
+
+    time_stamp = "[" + time_hr_msg + ":" + time_min_msg + ":" + time_sec_msg + "]";
+    
+    return time_stamp;
 }

@@ -7,9 +7,6 @@
     #define SEA_LEVEL_PRESSURE 101325
     #define WATER_DENSITY 1000
     #define GRAVITY 9.81
-    #define SECONDS_IN_MINUTE 60
-    #define MINUTES_IN_HOUR 60
-    #define HOURS_IN_DAY 24
 
     #ifndef ENABLE_LOGGING
         #define ENABLE_LOGGING 1
