@@ -19,14 +19,14 @@ void setup()
 
 void loop()
 {
-    state = execute_mission();
+    mission_state = execute_mission();
 
-    if (state == MISSION_COMPLETE)
+    if (mission_state == MISSION_COMPLETE)
     {
         send_msg();
     }
 
-    if((state == RESET) && (reset_enable))
+    if((mission_state == RESET) && (reset_enable))
     {
         first_dive_flag = false;
         first_stop_flag = false;
@@ -34,13 +34,13 @@ void loop()
         second_dive_flag = false;
         rise_flag = false;
     }
-    
 }
 
 //-------------------------------------------------Functions---------------------------------------------------------
 void get_bmp_readings()
 {
     pressure_data data;
+    data.time_stamp = bmp.getTime();
     data.depth = bmp.readDepth();
     data.pressure = bmp.readPressure();
     pressure_log.push(data);
@@ -53,15 +53,15 @@ void send_msg()
     { 
         depth = pressure_log.front().depth;
         pressure = pressure_log.front().pressure;
-        time_stamp = getTime();
+        time_stamp = pressure_log.front().time_stamp;
 
         msg = time_stamp + "," + String(depth) + "," + String(pressure);
         
         connection.send_data(msg);
         pressure_log.pop();
     }
-
 }
+
 
 void sample_readings()
 {
@@ -71,10 +71,10 @@ void sample_readings()
         get_bmp_readings();
         sampling_prev_time = sampling_current_time;
     }
-
 }
 
-int execute_mission()
+
+MovementState execute_mission()
 {
     if(!first_dive_flag)
     {
@@ -139,47 +139,4 @@ int execute_mission()
         return SURFACING;
     }
     return RESET;
-}
-
-
-String getTime()
-{
-    transmission_time = millis() / MILLISECOND_IN_SECOND;
-    time_sec = transmission_time % SECONDS_IN_MINUTE;
-    time_min = (transmission_time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
-    time_hr = (transmission_time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
-    
-    if (time_hr < 10)
-    {
-        time_hr_msg = "0" + String(time_hr);
-    }
-    
-    else
-    {
-        time_hr_msg = String(time_hr);
-    }
-
-    if (time_min < 10)
-    {
-        time_min_msg = "0" + String(time_min);
-    }
-
-    else
-    {
-        time_min_msg = String(time_min);
-    }
-
-    if (time_sec < 10)
-    {
-        time_sec_msg = "0" + String(time_sec);
-    }
-
-    else
-    {
-        time_sec_msg = String(time_sec);
-    }
-
-    time_stamp = "[" + time_hr_msg + ":" + time_min_msg + ":" + time_sec_msg + "]";
-    
-    return time_stamp;
 }

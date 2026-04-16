@@ -17,12 +17,16 @@ Description: Handles the basic control logic of the system
         private:
             PID pid;
             BMP bmp;
+
             volatile float goal;
             volatile float reading;
+            
             bool balance_flag;
+            
             unsigned long control_current_time;
             unsigned long control_prev_time;
             double control_dt;
+            
             int power_up;
             int power_down;
 

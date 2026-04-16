@@ -4,18 +4,21 @@ Movement::Movement()
 {
     this->power_up = 0;
     this->power_down = 0;
+
     this->current_depth = 0.00;
     this->target_depth = 0.00;
     this->prev_target_depth = 0.00;
-    this->movement_current_time = 0.00;
-    this->movement_prev_time = 0.00;
-    this->movement_dt = 0.00;
+    
+    this->movement_current_time = 0;
+    this->movement_prev_time = 0;
+    this->movement_dt = 0;
+    
     this->hold_flag = false;
     this->dive_flag = false;
     this->rise_flag = false;
 }
 
-int Movement::dive(float depth)
+MovementState Movement::dive(float depth)
 {
     this->target_depth = depth;
     
@@ -28,17 +31,11 @@ int Movement::dive(float depth)
     {
         this->pid.set_goal(this->target_depth);
         this->prev_target_depth = this->target_depth;
+        this->movement_prev_time = millis();
         this->dive_flag = true;
     }
     
-    
     this->movement_current_time = millis();
-    
-    if(this->movement_prev_time == 0)
-    {
-        this->movement_prev_time = this->movement_current_time;
-        return DIVING;
-    }
 
     this->current_depth = this->bmp.readDepth();
     this->pid.set_reading(this->current_depth);
@@ -70,16 +67,16 @@ int Movement::dive(float depth)
     }
 }
 
-int Movement::hold(float duration)
+MovementState Movement::hold(float duration)
 {   
-    this->movement_current_time = millis();
-
+    
     if(!this->hold_flag) 
     {
-        this->movement_prev_time = this->movement_current_time;
+        this->movement_prev_time = millis();
         this->hold_flag = true;
     }
-
+    
+    this->movement_current_time = millis();
     this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
     
     if(this->movement_dt < duration)
@@ -93,24 +90,19 @@ int Movement::hold(float duration)
     return IDLE;
 }
 
-int Movement::rise_to_surface()
+MovementState Movement::rise_to_surface()
 {
     if(!this->rise_flag)
     {
         this->target_depth = SEA_LEVEL_DEPTH;
         this->pid.set_goal(this->target_depth);
+        this->movement_prev_time = millis();
         this->rise_flag = true;
     }
     
     this->current_depth = this->bmp.readDepth();
     
     this->movement_current_time = millis();
-    
-    if(this->movement_prev_time == 0)
-    {
-        this->movement_prev_time = this->movement_current_time;
-        return SURFACING;
-    }
     
     this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
 
