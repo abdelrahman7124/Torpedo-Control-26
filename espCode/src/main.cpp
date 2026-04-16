@@ -3,8 +3,8 @@
 #include "ethernet.h"
 #include "pressureSensor.h"
 #include "thrusters.h"
-unsigned long previousMillis = 0;
 #include "filters.h"
+unsigned long previousMillis = 0;
 #define SDA 21
 #define SCL 22
 IMU imu;
@@ -35,13 +35,18 @@ void setup() {
 }
 
 void loop() {
-    imu.update();
-    roll = drift_negation_roll.filter(imu.getRoll());
-    roll = kalman_filter_roll.filter(roll);
-    pitch = drift_negation_pitch.filter(imu.getPitch());
-    pitch = kalman_filter_pitch.filter(pitch);
-    yaw = drift_negation_yaw.filter(imu.getYaw());
-    yaw = kalman_filter_yaw.filter(yaw);
+    static unsigned long imuTimer = 0;
+    if (millis() - imuTimer >= 10) { 
+        imu.update();
+        roll = drift_negation_roll.filter(imu.getRoll());
+        roll = kalman_filter_roll.filter(roll);
+        pitch = drift_negation_pitch.filter(imu.getPitch());
+        pitch = kalman_filter_pitch.filter(pitch);
+        yaw = drift_negation_yaw.filter(imu.getYaw());
+        yaw = kalman_filter_yaw.filter(yaw);
+        
+        imuTimer = millis();
+    }
     static unsigned long dhcpTimer = 0;
     if (millis() - dhcpTimer > 2000) {
         MaintainEthernet();
@@ -50,21 +55,18 @@ void loop() {
     mySensor.update();
     char* incomingCmd = checkIncomingUDP();
     if(!checkNetworkHealth()){
-        Serial.println("Network issue detected. Attempting to recover...");
         recoverNetwork();
     }
     if (incomingCmd != NULL) {
         lastRcvdTime = millis();
-        Serial.print("---------------------------------RX: "); Serial.println(incomingCmd);
-        if(incomingCmd=="-1")ESP.restart();
+        if(strcmp(incomingCmd, "-1") == 0) {
+            ESP.restart();
+        }
         parseAndDrive(incomingCmd);
     } else {
-        static unsigned long waitTimer = 0;
-        if(millis() - waitTimer > 2000) {
-            Serial.print("Waiting for data on Port ");
-            Serial.println(9000);
-            waitTimer = millis();
+        if(millis() - lastRcvdTime > 2000) {
             resetUDP();
+            lastRcvdTime = millis();
         }
     }
     mySensor.display();
@@ -73,5 +75,6 @@ void loop() {
         sendDataArrayFloat(dataArray, 4);
         previousMillis = millis();
     }
-    delay(100);
+    //delay(100); try with and without this delay marwan added it in the imu but i think it might affect the pid
+
 }

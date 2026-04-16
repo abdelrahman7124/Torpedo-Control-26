@@ -3,30 +3,18 @@
 #include <string.h>
 #include <Servo.h>
 #include "ethernet.h"
-#define TEST_MODE true
-#define NUM_THRUSTERS 4
+#define NUM_THRUSTERS 6
 Servo thrusters[NUM_THRUSTERS+1];
-const int thrusterPins[NUM_THRUSTERS+1] = {0, 1, 2, 3, 4};
+const int thrusterPins[NUM_THRUSTERS+1] = {2, 4, 16, 25, 26, 27, 17};// 17 is for the gripper servo
 const int freq = 5000;
 const int resolution = 8;
 void setupThrusters() {
-    if(!TEST_MODE){
-        for(int i=0; i<NUM_THRUSTERS; i++) {
-                thrusters[i].attach(thrusterPins[i]);
-                thrusters[i].writeMicroseconds(1500);
-        }
-    }else{
-        ledcSetup(0, freq, resolution); ledcAttachPin(26, 0);
-        ledcSetup(1, freq, resolution); ledcAttachPin(32, 1);
-        ledcSetup(2, freq, resolution); ledcAttachPin(33, 2);
-        ledcSetup(3, freq, resolution); ledcAttachPin(25, 3);
-        ledcWrite(0, 255);//up
-        ledcWrite(1, 255);//right
-        ledcWrite(2, 255);//down
-        ledcWrite(3, 255);//left
+    for(int i=0; i<NUM_THRUSTERS; i++) {
+            thrusters[i].attach(thrusterPins[i]);
+            thrusters[i].writeMicroseconds(1500);
     }
-    thrusters[NUM_THRUSTERS+1].attach(thrusterPins[NUM_THRUSTERS+1]);
-    thrusters[NUM_THRUSTERS+1].writeMicroseconds(1500);
+    thrusters[NUM_THRUSTERS].attach(thrusterPins[NUM_THRUSTERS]);
+    thrusters[NUM_THRUSTERS].writeMicroseconds(1500);
     pinMode(5, OUTPUT);
     
 }
@@ -35,26 +23,24 @@ void parseAndDrive(char* packetBuffer) {
     char* token = strtok(packetBuffer, ",");
     while (token != NULL && thrusterIndex < NUM_THRUSTERS) {
         int val = atoi(token); 
-        
-        if (TEST_MODE) {
-            int brightness = atoi(token);
-            ledcWrite(thrusterIndex, brightness);
-        } else {
-            val = constrain(val, 1100, 1900);
-            thrusters[thrusterIndex].writeMicroseconds(val);
-        }
-        
+        val = constrain(val, 1100, 1900);
+        thrusters[thrusterIndex].writeMicroseconds(val);
         thrusterIndex++;
         token = strtok(NULL, ",");
     }
-    int val = atoi(token);
-    thrusters[NUM_THRUSTERS+1].writeMicroseconds(val);
-    token = strtok(NULL, ",");
-    int val = atoi(token);
-    if(val==1){
-        digitalWrite(5, HIGH);
-    } else {
-        digitalWrite(5, LOW);
+    int val2 = 0;
+    if (token != NULL) {
+        val2 = atoi(token);
+        thrusters[NUM_THRUSTERS].writeMicroseconds(val2);
+        token = strtok(NULL, ",");
+    }
+    if (token != NULL) {
+    val2 = atoi(token);
+        if(val2==1){
+            digitalWrite(5, HIGH);//gripper open
+        } else {
+            digitalWrite(5, LOW);//gripper close
+        }
     }
 }
 
