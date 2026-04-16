@@ -10,7 +10,7 @@ Description: Handles interfacing and data conversion for the MPU6050 sensor
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include "config.h"
+#include "imu_config.h"
 
 
 

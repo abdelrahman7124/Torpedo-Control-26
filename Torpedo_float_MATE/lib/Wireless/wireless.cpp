@@ -1,10 +1,3 @@
-/*
-Author: Marwan Aly
-Project: Wireless Connection
-Team: Torpedo ROV
-Description: Handles wireless communication for ESP8266 and send data by using the ESP8266 as a WIFI access point
-*/
-
 #include "wireless.h"
 
 wireless::wireless() : server(0)

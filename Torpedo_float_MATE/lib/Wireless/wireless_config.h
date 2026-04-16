@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-    #define CONFIG_H
+#ifndef WIRELESS_CONFIG_H
+    #define WIRELESS_CONFIG_H
     
     #define GREEN   "\x1b[32m"
     #define RED     "\x1b[31m"

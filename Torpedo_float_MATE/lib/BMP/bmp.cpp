@@ -4,10 +4,10 @@ BMP::BMP()
 {
     this->pressure = 0.0;
     this->depth = 0.0;
-    this->time_sec = 0.0;
-    this->time_min = 0.0;
-    this->time_hr = 0.0;
-    this->time = 0.0;
+    this->time_sec = 0;
+    this->time_min = 0;
+    this->time_hr = 0;
+    this->bmp_time = 0;
     this->time_sec_msg = "";
     this->time_min_msg = "";
     this->time_hr_msg = "";
@@ -24,7 +24,7 @@ void BMP::init()
 
 float BMP::readPressure()
 {
-    this->pressure = bmp.readPressure();
+    this->pressure = filter.filter(bmp.readPressure());
     return this->pressure;
 }
 
@@ -37,42 +37,42 @@ float BMP::readDepth()
 
 String BMP::getTime()
 {
-    this->time = millis() / 1000.0;
-    this->time_sec = this->time % SECONDS_IN_MINUTE;
-    this->time_min = (this->time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
-    this->time_hr = (this->time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
+    this->bmp_time = millis() / MILLISECOND_IN_SECOND;
+    this->time_sec = this->bmp_time % SECONDS_IN_MINUTE;
+    this->time_min = (this->bmp_time / SECONDS_IN_MINUTE) % MINUTES_IN_HOUR;
+    this->time_hr = (this->bmp_time / (SECONDS_IN_MINUTE * MINUTES_IN_HOUR)) % HOURS_IN_DAY;
     
-    if (this->time_hr < 10)
+    if (time_hr < 10)
     {
-        this->time_hr_msg = "0" + String(this->time_hr);
+        time_hr_msg = "0" + String(time_hr);
     }
     
     else
     {
-        this->time_hr_msg = String(this->time_hr);
+        time_hr_msg = String(time_hr);
     }
 
-    if (this->time_min < 10)
+    if (time_min < 10)
     {
-        this->time_min_msg = "0" + String(this->time_min);
+        time_min_msg = "0" + String(time_min);
     }
 
     else
     {
-        this->time_min_msg = String(this->time_min);
+        time_min_msg = String(time_min);
     }
 
-    if (this->time_sec < 10)
+    if (time_sec < 10)
     {
-        this->time_sec_msg = "0" + String(this->time_sec);
+        time_sec_msg = "0" + String(time_sec);
     }
 
     else
     {
-        this->time_sec_msg = String(this->time_sec);
+        time_sec_msg = String(time_sec);
     }
 
-    this->time_stamp = "[" + this->time_hr_msg + ":" + this->time_min_msg + ":" + this->time_sec_msg + "]";
+    this->time_stamp = "[" + time_hr_msg + ":" + time_min_msg + ":" + time_sec_msg + "]";
     
-    return this->time_stamp;
+    return time_stamp;
 }

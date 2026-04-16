@@ -8,7 +8,7 @@ Description: Handles PID controller logic and decision making for movement of an
 
 #ifndef PID_H
 #define PID_H
-#include "config.h"
+#include "pid_config.h"
 
 class PID
 {

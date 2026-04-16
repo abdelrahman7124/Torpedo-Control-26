@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-    #define CONFIG_H
+#ifndef PID_CONFIG_H
+    #define PID_CONFIG_H
 
     #include <Arduino.h>
 

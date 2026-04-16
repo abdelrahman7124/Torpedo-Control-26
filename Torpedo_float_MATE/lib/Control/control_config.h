@@ -1,13 +1,21 @@
 #ifndef CONTROL_CONFIG_H
-    #define CONTROL_CONFIG_H    
+    #define CONTROL_CONFIG_H
+
     #define GREEN   "\x1b[32m"
     #define YELLOW  "\x1b[33m"
 
-    #define SEA_LEVEL_DEPTH 0.00
-    #define DEPTH_THRESHOLD 2.00
-    #define SURFACE_THRESHOLD 0.50
+    #define MOTOR_PIN_1  5
+    #define MOTOR_PIN_2  6
 
+    #define UPPER_LIMIT_SWITCH_PIN 2
+    #define LOWER_LIMIT_SWITCH_PIN 3
+
+    #define MAX_MOTOR_OUTPUT 255
+    #define MIN_MOTOR_OUTPUT 0 
+    
     #define MILLISECOND_IN_SECOND 1000.00
+    
+    #define HOVER_THRESHOLD 5.0
 
     #ifndef ENABLE_LOGGING
         #define ENABLE_LOGGING 1

@@ -8,7 +8,7 @@ Description: Includes different types of filters to handle sensor readings
 #ifndef FILTERS_H
 #define FILTERS_H
 
-#include "config.h"
+#include "filters_config.h"
 
 class KALMAN
 {
