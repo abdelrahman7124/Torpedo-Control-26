@@ -108,36 +108,38 @@ class ROVController(Node):
 
     def compute_yaw(self, active):
         
+
         if active:
-            pass
-            # self.target_yaw += self.joy_yaw * self.YAW_RATE
-            # while self.target_yaw > 180.0:
-            #     self.target_yaw -= 360.0
-            # while self.target_yaw < -180.0:
-            #     self.target_yaw += 360.0
-            # self.yaw_pid.set_setpoint(self.target_yaw)
+            output = self.joy_yaw
             
         
         elif not active and self.prev_yaw_active:
             self.target_yaw = self.current_yaw
             self.yaw_pid.set_setpoint(self.target_yaw)
             self.yaw_pid.reset()
+            output = self.yaw_pid.compute(self.current_yaw)
 
-        return self.yaw_pid.compute(self.current_yaw)
+        else:
+            output = self.yaw_pid.compute(self.current_yaw)
+
+        return float(output)
     
     def compute_depth(self, active):
         if active:
-            pass
             # self.target_depth += self.joy_ud * self.DEPTH_RATE
             # self.depth_pid.set_setpoint(self.target_depth)
+            output = self.joy_ud
         
         elif not active and self.prev_ud_active:
             self.target_depth = self.current_depth
             self.depth_pid.set_setpoint(self.target_depth)
             self.depth_pid.reset()
+            output = self.depth_pid.compute(self.current_depth)
+        else:
+            output = self.depth_pid.compute(self.current_depth)
 
-        return self.depth_pid.compute(self.current_depth)
-        
+        return float(output)
+
 def main(args=None):
     rclpy.init(args=args)
     node = ROVController()

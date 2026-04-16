@@ -18,6 +18,8 @@ class ROVInput(Node):
         self.BTN_MED_SPEED = 6
         self.BTN_HIGH_SPEED = 7
 
+        self.BTN_ROTATE = 8
+
         self.DEADZONE = 0.5
 
         self.speed_mode = "continuous"
@@ -27,11 +29,14 @@ class ROVInput(Node):
 
         self.prev_buttons = []
 
+        self.move_mode = "normal"
+
 
         self.create_subscription(String, 'joy_raw', self.joy_callback, 10)
         
         self.joy_pub = self.create_publisher(String, 'joy_processed', 10)
         self.speed_pub = self.create_publisher(Float32, 'speed_factor', 10)
+        self.move_mode_pub = self.create_publisher(String, 'move_mode', 10)
 
         self.get_logger().info("✅ ROVInput node started")
     
@@ -92,7 +97,7 @@ class ROVInput(Node):
                 return
             
             self.handle_speed(buttons)
-            self.prev_buttons = buttons
+            
 
             fb_raw = axes[self.AXIS_FB]
             rl_raw = axes[self.AXIS_RL]
@@ -119,6 +124,19 @@ class ROVInput(Node):
                 'is_active': is_active
             }
             self.joy_pub.publish(String(data=json.dumps(output)))
+
+
+            if self.is_btn_pressed(buttons, self.BTN_ROTATE):
+                if self.move_mode == "rotate":
+                    self.move_mode = "normal"
+                else:
+                    self.move_mode = "rotate"
+                self.get_logger().info(f"Move Mode: {self.move_mode}")
+            
+                self.move_mode_pub.publish(String(data=self.move_mode))   
+
+            self.prev_buttons = buttons  
+            
 
         except json.JSONDecodeError:
             pass
