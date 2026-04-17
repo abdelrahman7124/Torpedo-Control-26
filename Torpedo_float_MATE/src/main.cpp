@@ -3,7 +3,7 @@
 void setup() 
 {
     Serial.begin(9600);
-    Wire.begin(1,2);
+    Wire.begin(SDA_PIN,SCL_PIN);
     bmp.init();
     connection.connect_init();
     sampling_current_time = 0;
