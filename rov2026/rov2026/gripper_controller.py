@@ -8,12 +8,12 @@ class GripperController(Node):
         super().__init__('gripper_controller')
 
         self.BTN_GRIPPER_TOGGLE = 0
-
-        self.BTN_GRIPPER_SERVO = 2
+        self.BTN_GRIPPER_SERVO_RIGHT = 1
+        self.BTN_GRIPPER_SERVO_LEFT = 3
 
         self.gripper_value = 0
         self.servo_value = 0
-
+    
         self.prev_buttons = []
 
 
@@ -32,10 +32,12 @@ class GripperController(Node):
                 self.get_logger().info("Gripper TOGGLE")
                 self.gripper_value = 1 - self.gripper_value
 
-            if buttons[self.BTN_GRIPPER_SERVO] == 1:
-                self.get_logger().info("Gripper SERVO")
+            if buttons[self.BTN_GRIPPER_SERVO_RIGHT] == 1:
+                self.get_logger().info("Gripper SERVO RIGHT")
                 self.servo_value = 1700
-
+            elif buttons[self.BTN_GRIPPER_SERVO_LEFT] == 1:
+                self.get_logger().info("Gripper SERVO LEFT")
+                self.servo_value = 1300
             else:
                 self.servo_value = 1500
 

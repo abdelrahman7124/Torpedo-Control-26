@@ -19,10 +19,12 @@ class ROVController(Node):
         self.joy_rl = 0.0
         self.joy_ud = 0.0
         self.joy_yaw = 0.0
+        self.joy_pitch = 0.0
         self.joy_active = False
 
         self.prev_yaw_active = False
         self.prev_ud_active = False
+        self.prev_pitch_active = False
         
         self.current_yaw = 0.0
         self.current_depth = 0.0
@@ -30,6 +32,7 @@ class ROVController(Node):
 
         self.target_yaw = 0.0
         self.target_depth = 0.0
+        self.target_pitch = 0.0
 
         self.YAW_RATE = 2.0
         self.DEPTH_RATE = 0.02
@@ -55,6 +58,7 @@ class ROVController(Node):
             self.joy_rl = data.get('rl', 0.0)
             self.joy_ud = data.get('ud', 0.0)
             self.joy_yaw = data.get('yaw', 0.0)
+            self.joy_pitch = data.get('pitch', 0.0)
             self.joy_active = data.get('is_active', False)
             
         except json.JSONDecodeError:
@@ -67,31 +71,38 @@ class ROVController(Node):
             self.current_depth = data.get('depth', 0.0)
             self.current_pitch = data.get('pitch', 0.0)
 
+
             if not self.initialized:
                 self.target_yaw = self.current_yaw
                 self.target_depth = self.current_depth
+                self.target_pitch = self.current_pitch
                 self.yaw_pid.set_setpoint(self.target_yaw)
                 self.depth_pid.set_setpoint(self.target_depth)
-                self.pitch_pid.set_setpoint(0.0)
+                self.pitch_pid.set_setpoint(self.target_pitch)
                 self.yaw_pid.set_output_limits((-1.0, 1.0))
                 self.depth_pid.set_output_limits((-1.0, 1.0))
                 self.pitch_pid.set_output_limits((-1.0, 1.0))
+
                 self.initialized = True
                 self.get_logger().info(
                     f"✅ Initialized - Yaw: {self.target_yaw:.1f}°, "
-                    f"Depth: {self.target_depth:.2f}m"
+                    f"Depth: {self.target_depth:.2f}m, "
+                    f"Pitch: {self.target_pitch:.1f}°"
                 )
                 return
             
             yaw_active = True if abs(self.joy_yaw) > 0.0 else False
             ud_active = True if abs(self.joy_ud) > 0.0 else False
+            pitch_active = True if abs(self.joy_pitch) > 0.0 else False
+
 
             yaw_cmd = self.compute_yaw(yaw_active)
             ud_cmd = self.compute_depth(ud_active)
-            pitch_cmd = self.pitch_pid.compute(self.current_pitch)
+            pitch_cmd = self.compute_pitch(pitch_active)
 
             self.prev_yaw_active = yaw_active
             self.prev_ud_active = ud_active
+            self.prev_pitch_active = pitch_active
 
             cmd = {
                 'fb': self.joy_fb,
@@ -139,7 +150,21 @@ class ROVController(Node):
             output = self.depth_pid.compute(self.current_depth)
 
         return float(output)
+    
+    def compute_pitch(self, active):
+        if active:
+            output = self.joy_pitch
+        
+        elif not active and self.prev_pitch_active:
+            self.target_pitch = self.current_pitch
+            self.pitch_pid.set_setpoint(self.target_pitch)
+            self.pitch_pid.reset()
+            output = self.pitch_pid.compute(self.current_pitch)
+        else:
+            output = self.pitch_pid.compute(self.current_pitch)
 
+        return float(output)
+    
 def main(args=None):
     rclpy.init(args=args)
     node = ROVController()
