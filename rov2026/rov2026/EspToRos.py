@@ -27,8 +27,8 @@ class EspToRos(Node):
                 try:
                     values = raw_text.split(',')
                     telemetry_dict = {
-                        "pitch": float(values[0]),
-                        "roll": float(values[1]),
+                        "roll": float(values[0]),
+                        "pich": float(values[1]),
                         "yaw": float(values[2]),
                         "depth": float(values[3])
                     }
