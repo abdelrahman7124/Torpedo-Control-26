@@ -29,7 +29,6 @@ Description: The main file that handles the whole system
     void send_msg();
     MovementState execute_mission();
     void sample_readings();
-    String getTime();
 
     std::queue <pressure_data> pressure_log;
 
