@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ESP2SOTA.h>
 #include "imu.h"
 #include "ethernet.h"
 #include "pressureSensor.h"
@@ -16,6 +19,11 @@ DRIFTNEGATION drift_negation_yaw;
 DRIFTNEGATION drift_negation_pitch;
 DRIFTNEGATION drift_negation_roll;
 
+const char* ssid = "torpedo_upload";
+const char* password = "torp1357";
+
+WebServer server(80);
+
 float roll, pitch, yaw;
 Pressure mySensor;
 unsigned long prevSendMillis = 0;
@@ -32,6 +40,10 @@ void setup() {
     kalman_filter_roll.set_R(0.2);
     drift_negation_pitch.set_threshold(0.2);
     drift_negation_roll.set_threshold(0.2);
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid, password);
+    ESP2SOTA.begin(&server);
+    server.begin();
 }
 
 void loop() {
@@ -75,6 +87,7 @@ void loop() {
         sendDataArrayFloat(dataArray, 4);
         previousMillis = millis();
     }
+    server.handleClient();
     //delay(100); try with and without this delay marwan added it in the imu but i think it might affect the pid
 
 }
