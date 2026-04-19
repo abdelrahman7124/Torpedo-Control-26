@@ -28,7 +28,7 @@ class EspToRos(Node):
                     values = raw_text.split(',')
                     telemetry_dict = {
                         "roll": float(values[0]),
-                        "pich": float(values[1]),
+                        "pitch": float(values[1]),
                         "yaw": float(values[2]),
                         "depth": float(values[3])
                     }
@@ -42,12 +42,7 @@ class EspToRos(Node):
         except BlockingIOError:
             pass
         except Exception as e:
-            self.get_logger().error(f"Socket Error: {e}")
-
-            json_msg = json.dumps(telemetry_dict)
-            msg = String()
-            msg.data = json_msg
-            self.telemetry.publish(msg)
+            pass
 
 
 def main(args=None):

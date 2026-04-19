@@ -13,7 +13,7 @@ class ROVInput(Node):
         self.AXIS_UP = 5
         self.AXIS_DOWN = 2
         self.AXIS_YAW = 3
-        self.AXIS_PITCH = 4
+        self.AXIS_PITCH = 7
 
         self.BTN_TOGGLE_MODE = 4
         self.BTN_TOGGLE_SPEED = 5
