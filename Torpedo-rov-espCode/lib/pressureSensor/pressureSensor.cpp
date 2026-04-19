@@ -8,8 +8,7 @@ void Pressure::init() {
   pinMode(hspi->pinSS(), OUTPUT); 
   hspi->setBitOrder(MSBFIRST);
   hspi->setClockDivider(SPI_CLOCK_DIV32);  //divide 16 MHz to communicate on 500 kHz
-  ledcSetup(pwm_Channel, pwm_Freq, pwm_Resolution);
-  ledcAttachPin(MCLK, pwm_Channel);
+  ledcAttach(MCLK, pwm_Freq, pwm_Resolution);
   if (millis() - previousMillis2 > 500) {
     previousMillis2 = millis();
   }
@@ -29,8 +28,7 @@ void Pressure::resetSensor() {
 void Pressure::update() {
   int dutyCycle = 128;
   delay(1);
-  ledcWrite(pwm_Channel, dutyCycle);
-  this->resetSensor();
+  ledcWrite(MCLK, dutyCycle);  
 
   //Calibration word 1
   unsigned int word1 = 0;
@@ -138,7 +136,7 @@ void Pressure::update() {
   const long SENS = c1 + ((c3 * dT) / 1024) + 24576;
 
   long PCOMP = ((((SENS * (D1 - 7168)) / 16384) - OFF) / 32) + 270;
-  const long dT2 = dT - ((dT >> 7 * dT >> 7) >> 3);
+  const long dT2 = dT - (((dT >> 7) * (dT >> 7)) >> 3);    
   const float TEMPCOMP = (200 + (dT2 * (c6 + 100) >> 11)) / 10;
   this->pressure = PCOMP;
   this->temp = TEMPCOMP;

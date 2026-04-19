@@ -6,7 +6,7 @@
     #define YELLOW  "\x1b[33m"
 
 
-    #define DEFAULT_SSID "Topedo_Float"
+    #define DEFAULT_SSID "Torpedo_Float"
     #define DEFAULT_PASSWORD "12345678"
     #define DEFAULT_CLIENT_IP IPAddress(192,168,4,2)
     #define DEFAULT_PORT 1234

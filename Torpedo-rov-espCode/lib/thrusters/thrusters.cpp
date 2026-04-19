@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Servo.h>
+#include <ESP32Servo.h>  // not <Servo.h>
 #include "ethernet.h"
 #define NUM_THRUSTERS 6
 Servo thrusters[NUM_THRUSTERS+1];
-const int thrusterPins[NUM_THRUSTERS+1] = {32, 4, 16, 25, 26, 27, 17};// 17 is for the gripper servo
+const int thrusterPins[NUM_THRUSTERS+1] = {2, 4, 16, 25, 26, 27, 17};// 17 is for the gripper servo
 const int freq = 5000;
 const int resolution = 8;
 void setupThrusters() {
@@ -15,7 +15,7 @@ void setupThrusters() {
     }
     thrusters[NUM_THRUSTERS].attach(thrusterPins[NUM_THRUSTERS]);
     thrusters[NUM_THRUSTERS].writeMicroseconds(1500);
-    pinMode(33, OUTPUT);
+    pinMode(5, OUTPUT);
     
 }
 void parseAndDrive(char* packetBuffer) {
@@ -37,9 +37,9 @@ void parseAndDrive(char* packetBuffer) {
     if (token != NULL) {
     val2 = atoi(token);
         if(val2==1){
-            digitalWrite(33, HIGH);//gripper open
+            digitalWrite(5, HIGH);//gripper open
         } else {
-            digitalWrite(33, LOW);//gripper close
+            digitalWrite(5, LOW);//gripper close
         }
     }
 }
