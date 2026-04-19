@@ -1,10 +1,19 @@
+#include <EEPROM.h>
 #include "pid.h"
 
 PID::PID()
 {
-    this->kp = KP_INITIAL;
-    this->ki = KI_INITIAL;
-    this->kd = KD_INITIAL;
+    if(SYSTEM_MODE == CALIBRATION_MODE)
+   { EEPROM.get(KP_STORE_ADDRESS, this->kp);
+    EEPROM.get(KI_STORE_ADDRESS, this->ki);
+    EEPROM.get(KD_STORE_ADDRESS, this->kd);}
+    else
+    {
+        this->kp = KP_INITIAL;
+        this->kd = KD_INITIAL;
+        this->ki = KI_INITIAL;
+        
+    }
     this->error = 0.0;
     this->sum = 0.0;
     this->diff = 0.0;
@@ -46,6 +55,10 @@ void PID::set_goal(float parameter)
     this->sum = 0.00;
     this->prev_error = 0.00;
     this->goal = parameter;
+    this->mean_error = 0.0;
+    this->error_variance = 0.0;
+    this->overshoot_count = 0.0;
+    this->last_error = 0.0;
     LOG_INFO("%s", "Goal set");
 }
 
@@ -104,8 +117,8 @@ double PID::run()
     
     if(this->dt <= 0)
     {
-        LOG_ERROR("%s", "dt must be > 0");
-        return NORMALIZTION_PARAMETER;
+        LOG_WARN("%s", "dt must be > 0");
+        this->dt = DEFAULT_DT;
     }
     
     else
@@ -146,11 +159,11 @@ void PID::adapt()
 
     if(abs(this->mean_error) > MEAN_THRESHOLD)
     {
-        this->ki *= KI_STEP_UP;
+        this->ki += KI_STEP_UP;
     }
     else
     {
-        this->ki *= KI_STEP_DOWN;
+        this->ki -= KI_STEP_DOWN;
     }
 
 

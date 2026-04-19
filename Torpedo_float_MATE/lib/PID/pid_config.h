@@ -1,7 +1,6 @@
 #ifndef PID_CONFIG_H
     #define PID_CONFIG_H
 
-    #include <Arduino.h>
 
     #define RED     "\x1b[31m"
     #define GREEN   "\x1b[32m"
@@ -12,10 +11,12 @@
     #define KI_INITIAL 0.1
     #define KD_INITIAL 0.05
 
+    #define DEFAULT_DT 0.001
+
     #define KP_STEP_UP 1.005
     #define KP_STEP_DOWN 0.995 
-    #define KI_STEP_UP 1.0007
-    #define KI_STEP_DOWN 0.9998
+    #define KI_STEP_UP 0.001
+    #define KI_STEP_DOWN 0.002
     #define KD_STEP_UP 1.01
     #define KD_STEP_DOWN 0.99
     #define OVERSHOOT_SMALL_RESET 0.95
@@ -30,7 +31,7 @@
     #define MEAN_THRESHOLD 2.0
     #define VARIANCE_THRESHOLD 10.0
     #define OVERSHOOT_THRESHOLD 5
-    #define GOAL_THRESHOLD 10.00
+    #define GOAL_THRESHOLD 0.01
     
     #define KP_MAX_THRESHOLD 10.0
     #define KI_MAX_THRESHOLD 2.0
@@ -42,6 +43,12 @@
     
     #define MAX_INTEGRAL_THRESHOLD 20.00
     #define MIN_INTEGRAL_THRESHOLD -20.00
+
+    #define KP_STORE_ADDRESS 0
+    #define KI_STORE_ADDRESS 4
+    #define KD_STORE_ADDRESS 8
+
+    #define SYSTEM_MODE MISSION_MODE
 
     #ifndef ENABLE_LOGGING
     #define ENABLE_LOGGING 1

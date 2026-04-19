@@ -6,9 +6,12 @@ class WifiReciever():
     def __init__(self):
         self.buffer = ""
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(constants.CONNECTION_TIMEOUT_DURATION)
         self.Target_SSID = constants.DEFAULT_SSID
         self.ESP_IP = constants.DEFAULT_ESP_IP
         self.port = constants.DEFAULT_PORT
+        self.timeout_count = 0        
+        self.msg = "Begin"
     
     def get_ssid(self):
         try:
@@ -57,20 +60,58 @@ class WifiReciever():
             return states.WiFiState.WAITING
         
     def recieve(self):
-                data = self.sock.recv(constants.BUFFER_SIZE)
-                if(not data):
-                    print("Data not recieved!")
-                    return states.WiFiState.WAITING,None
+        try:
+            data = self.sock.recv(constants.BUFFER_SIZE)
+            self.timeout_count = 0
 
-                else:
-                    self.buffer += data.decode()
-                    if "\n" in self.buffer:
-                        lines = self.buffer.split("\n")
-                        self.buffer = lines[-1]
-                        for line in lines[:-1]:
-                            print(line)
-                        return states.WiFiState.FOUND, lines[:-1]
+        except socket.timeout:
+            self.timeout_count += 1
+            if(self.timeout_count >= constants.MAX_TIMEOUT_COUNT):
+                print("Connection silent, closing.")
+                self.close()
+                return states.WiFiState.DISCONNECTED, None
+            return states.WiFiState.WAITING, None
+        
+        except socket.error as e:
+            print(f"Socket error: {e}")
+            return states.WiFiState.DISCONNECTED, None
 
-                    else:
-                        return states.WiFiState.RECEIVING, None
-                            
+        if not data:
+            print("Connection closed by ESP!")
+            self.close()
+            return states.WiFiState.DISCONNECTED, None
+
+        self.buffer += data.decode()
+
+        if "\n" in self.buffer:
+            lines = self.buffer.split("\n")
+            self.buffer = lines[-1]
+            for line in lines[:-1]:
+                print(line)
+            return states.WiFiState.FOUND, lines[:-1]
+
+        return states.WiFiState.RECEIVING, None
+    
+    def send(self):
+        try:
+            self.sock.sendall((self.msg + "\n").encode())
+        except Exception as e:
+            print("Send error:", e)
+            self.close()
+    
+    def close(self):
+        try:
+            self.sock.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
+
+        try:
+            self.sock.close()
+        except Exception as e:
+            print("Close error:", e)
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.buffer = ""
+
+        print("Connection closed")

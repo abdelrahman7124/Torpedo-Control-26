@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Servo.h>
+#include <ESP32Servo.h>  // not <Servo.h>
 #include "ethernet.h"
 #define NUM_THRUSTERS 6
 Servo thrusters[NUM_THRUSTERS+1];

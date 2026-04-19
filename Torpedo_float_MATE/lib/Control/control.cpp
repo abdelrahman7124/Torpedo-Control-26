@@ -16,37 +16,53 @@ Control::Control()
     this->power_down = 0;
 }
 
-void Control::up()
+ControlState Control::up()
 {
     this->balance_flag = false;
     if(digitalRead(UPPER_LIMIT_SWITCH_PIN) == HIGH)
     {
-        analogWrite(MOTOR_PIN_1, this->power_up);
+        analogWrite(MOTOR_PIN_2, this->power_up);
+        analogWrite(MOTOR_PIN_1, MIN_MOTOR_OUTPUT);
+        LOG_INFO("Moving up with power %d", this->power_up);
+        return MOVING_UP;
     }
-    
-    analogWrite(MOTOR_PIN_2, MIN_MOTOR_OUTPUT);
-    LOG_INFO("Moving up with power %d", this->power_up);
+
+    else
+    {
+        stop();
+    }
+
+    return STOPPING;
 }
 
-void Control::down() 
+ControlState Control::down() 
 {
     this->balance_flag = false;
-    analogWrite(MOTOR_PIN_1, MIN_MOTOR_OUTPUT);
     
     if(digitalRead(LOWER_LIMIT_SWITCH_PIN) == HIGH)
     {
-        analogWrite(MOTOR_PIN_2, this->power_down);
+        analogWrite(MOTOR_PIN_1, this->power_down);
+        analogWrite(MOTOR_PIN_2, MIN_MOTOR_OUTPUT);
+        LOG_INFO("Moving down with power %d", this->power_down);
+        return MOVING_DOWN;
     }
 
-    LOG_INFO("Moving down with power %d", this->power_down);
+    else
+    {
+        stop();
+    }
+
+    return STOPPING;
+
 }
 
-void Control::stop() 
+ControlState Control::stop() 
 {
     this->balance_flag = false;
     analogWrite(MOTOR_PIN_1, MIN_MOTOR_OUTPUT);
     analogWrite(MOTOR_PIN_2, MIN_MOTOR_OUTPUT);
     LOG_INFO("%s","Stopping motors");
+    return STOPPING;
 }
 
 void Control::setPower_up(int power) 
@@ -63,13 +79,13 @@ void Control::setPower_down(int power)
     LOG_INFO("Setting down power to %d", power);
 }
 
-void Control::hover() 
+ControlState Control::hover() 
 {   
     this->control_current_time = millis();
 
     if(!this->balance_flag) 
     {
-        this->goal = bmp.readDepth();
+        this->goal = this->bmp.readDepth();
         this->pid.set_goal(this->goal);
         LOG_INFO("Entering balance mode with goal depth %.2f", this->goal);
 
@@ -81,24 +97,27 @@ void Control::hover()
     pid.set_dt(this->control_dt);
     this->control_prev_time = this->control_current_time;
 
-    this->reading = bmp.readDepth();
+    this->reading = this->bmp.readDepth();
     this->pid.set_reading(this->reading);
     int output = this->pid.run();
 
     if (output > HOVER_THRESHOLD) 
     {
-        setPower_down(output);
+        setPower_down(MAX_MOTOR_OUTPUT);
         down();
+        return MOVING_DOWN;
     }
 
     else if (output < -HOVER_THRESHOLD) 
     {
-        setPower_up(abs(output));
+        setPower_up(MAX_MOTOR_OUTPUT);
         up();
+        return MOVING_UP;
     } 
 
     else 
     {
         stop();
+        return STOPPING;
     }
 }
