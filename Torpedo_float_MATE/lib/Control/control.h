@@ -12,33 +12,41 @@ Description: Handles the basic control logic of the system
     #include "pid.h"
     #include "bmp.h"
 
+    enum ControlState
+    {
+        MOVING_UP = 1,
+        MOVING_DOWN = 2,
+        STOPPING = 3,
+    };
+
+
     class Control 
     {
         private:
-            PID pid;
-            BMP bmp;
-
-            volatile float goal;
-            volatile float reading;
-            
-            bool balance_flag;
-            
-            unsigned long control_current_time;
-            unsigned long control_prev_time;
-            double control_dt;
-            
-            int power_up;
-            int power_down;
-
-
+        
+        volatile float goal;
+        volatile float reading;
+        
+        bool balance_flag;
+        
+        unsigned long control_current_time;
+        unsigned long control_prev_time;
+        double control_dt;
+        
+        int power_up;
+        int power_down;
+        
+        
         public:
+            BMP bmp;
+            PID pid;
             Control();
-            void up();
-            void down();
-            void stop();
+            ControlState up();
+            ControlState down();
+            ControlState stop();
             void setPower_up(int power);
             void setPower_down(int power);
-            void hover();
+            ControlState hover();
     };
     
 

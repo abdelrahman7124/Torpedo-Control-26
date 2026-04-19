@@ -5,6 +5,8 @@ SystemCheck::SystemCheck()
     this->pressure = 0.00;
     this->depth = 0.00;
     this->time_stamp = "";
+    this->direction_flag = false;
+    this->motor_state = MOVING_UP;
 }
 
 void SystemCheck::checkSensors()
@@ -18,16 +20,25 @@ void SystemCheck::checkSensors()
 
 void SystemCheck::checkActuators()
 {
-    control.setPower_up(MAX_MOTOR_OUTPUT);
-    control.up();
-    LOG_INFO("%s", "Actuator Check: Moving up at maximum power");  
-    delay(TIME_FOR_CHECKUP);
-    
-    control.setPower_down(MAX_MOTOR_OUTPUT);
-    control.down();
-    LOG_INFO("%s", "Actuator Check: Moving down at maximum power");
-    delay(TIME_FOR_CHECKUP);
-    control.stop();
+    if(this->motor_state == STOPPING)
+    {
+        this->direction_flag = !this->direction_flag;
+    }
+
+    if(!direction_flag)
+    {
+        control.setPower_up(MAX_MOTOR_OUTPUT);
+        this->motor_state = control.up();
+    }
+
+    else
+    {
+        control.setPower_down(MAX_MOTOR_OUTPUT);
+        motor_state = control.down();
+    }
+
+
+    //control.stop();
 
 }
 
@@ -39,12 +50,14 @@ void SystemCheck::checkCommunication()
         connection.send_data("Checking connection");
         delay(TIME_FOR_CHECKUP);
     }
+
+    connection.close();
 }
 
 
 void SystemCheck::checkSystem()
 {
-    checkSensors();
+    //checkCommunication();
+    //checkSensors();
     checkActuators();
-    checkCommunication();
 }

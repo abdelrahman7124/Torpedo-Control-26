@@ -6,7 +6,7 @@
 
     #define MAX_MOTOR_OUTPUT 255
     #define MIN_MOTOR_OUTPUT 0
-    #define TIME_FOR_CHECKUP 2000
+    #define TIME_FOR_CHECKUP 5000
     #define NUM_CHECK_LOOPS 5
 
     #ifndef ENABLE_LOGGING
