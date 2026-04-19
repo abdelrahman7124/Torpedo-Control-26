@@ -1,3 +1,10 @@
+/*
+Author: Marwan Aly
+Project: PID Auto Calibration
+Team: Torpedo ROV
+Description: Finds good inital values for pid parameters when Float is in calibration mode
+*/
+
 #ifndef CALIBRATE_H
     #define CALIBRATE_H
     #include "movement.h"
