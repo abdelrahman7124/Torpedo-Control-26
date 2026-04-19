@@ -19,42 +19,30 @@ class EspToRos(Node):
         self.get_logger().info(f"Receiver Started. Listening on Port {LISTEN_PORT}")
 
     def check_udp_socket(self):
-        
-        telemetry_dict = {
-            "roll": 0.0,
-            "pitch": 0.0,
-            "yaw": 0.0,
-            "depth": 0.0
-        }
-        
         try:
             data, addr = self.sock.recvfrom(1024)
-            
+
             if data:
                 raw_text = data.decode('utf-8').strip()
-                
                 try:
                     values = raw_text.split(',')
                     telemetry_dict = {
                         "roll": float(values[0]),
-                        "pich": float(values[1]),
+                        "pitch": float(values[1]),
                         "yaw": float(values[2]),
                         "depth": float(values[3])
                     }
-                    
+                    msg = String()
+                    msg.data = json.dumps(telemetry_dict)
+                    self.telemetry.publish(msg)
+
                 except (ValueError, IndexError) as parse_error:
                     self.get_logger().warn(f"Failed to parse data '{raw_text}': {parse_error}")
 
-            
         except BlockingIOError:
             pass
         except Exception as e:
-            self.get_logger().error(f"Socket Error: {e}")
-
-        json_msg = json.dumps(telemetry_dict)
-        msg = String()
-        msg.data = json_msg
-        self.telemetry.publish(msg)
+            pass
 
 
 def main(args=None):
