@@ -39,17 +39,94 @@ class ROVController(Node):
 
         self.speed_factor = 1.0
 
+        
+
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
         self.create_subscription(String, 'rov_telemetry', self.telemetry_callback, 10)
         self.create_subscription(Float32, 'speed_factor', self.speed_callback, 10)
         self.cmd_pub = self.create_publisher(String, 'rov_commands', 10)
+        self.create_subscription(String, 'pid_gains', self.gains_callback, 10)
+        self.gains_pub = self.create_publisher(String, 'pid_gains_current', 10)
+        self.create_timer(1.0, self.publish_current_gains)
+
+        self.last_telemetry_time  = self.get_clock().now()
+        self.telemetry_timeout = 0.1 
+        self.telemetry_timed_out = False
+
+        self.create_timer(0.02, self.check_telemetry_timeout)
+        
 
         self.get_logger().info("✅ Controller started")
+
+
+    def gains_callback(self, msg):
+        try:
+            data = json.loads(msg.data)
+
+            changed = []
+
+            # Yaw
+            if 'yaw_kp' in data and data['yaw_kp'] != self.yaw_pid.kp:
+                self.yaw_pid.kp = data['yaw_kp']
+                changed.append(f"yaw_kp={data['yaw_kp']:.4f}")
+            if 'yaw_ki' in data and data['yaw_ki'] != self.yaw_pid.ki:
+                self.yaw_pid.ki = data['yaw_ki']
+                self.yaw_pid.reset()
+                changed.append(f"yaw_ki={data['yaw_ki']:.4f}")
+            if 'yaw_kd' in data and data['yaw_kd'] != self.yaw_pid.kd:
+                self.yaw_pid.kd = data['yaw_kd']
+                changed.append(f"yaw_kd={data['yaw_kd']:.4f}")
+
+            # Depth
+            if 'depth_kp' in data and data['depth_kp'] != self.depth_pid.kp:
+                self.depth_pid.kp = data['depth_kp']
+                changed.append(f"depth_kp={data['depth_kp']:.4f}")
+            if 'depth_ki' in data and data['depth_ki'] != self.depth_pid.ki:
+                self.depth_pid.ki = data['depth_ki']
+                self.depth_pid.reset()
+                changed.append(f"depth_ki={data['depth_ki']:.4f}")
+            if 'depth_kd' in data and data['depth_kd'] != self.depth_pid.kd:
+                self.depth_pid.kd = data['depth_kd']
+                changed.append(f"depth_kd={data['depth_kd']:.4f}")
+
+            # Pitch
+            if 'pitch_kp' in data and data['pitch_kp'] != self.pitch_pid.kp:
+                self.pitch_pid.kp = data['pitch_kp']
+                changed.append(f"pitch_kp={data['pitch_kp']:.4f}")
+            if 'pitch_ki' in data and data['pitch_ki'] != self.pitch_pid.ki:
+                self.pitch_pid.ki = data['pitch_ki']
+                self.pitch_pid.reset()
+                changed.append(f"pitch_ki={data['pitch_ki']:.4f}")
+            if 'pitch_kd' in data and data['pitch_kd'] != self.pitch_pid.kd:
+                self.pitch_pid.kd = data['pitch_kd']
+                changed.append(f"pitch_kd={data['pitch_kd']:.4f}")
+
+            if changed:
+                self.get_logger().info(f"🔧 Updated: {', '.join(changed)}")
+
+        except json.JSONDecodeError:
+            pass
+
+    def publish_current_gains(self):
+        gains = {
+            'yaw_kp': self.yaw_pid.kp,
+            'yaw_ki': self.yaw_pid.ki,
+            'yaw_kd': self.yaw_pid.kd,
+            'depth_kp': self.depth_pid.kp,
+            'depth_ki': self.depth_pid.ki,
+            'depth_kd': self.depth_pid.kd,
+            'pitch_kp': self.pitch_pid.kp,
+            'pitch_ki': self.pitch_pid.ki,
+            'pitch_kd': self.pitch_pid.kd,
+        }
+        self.gains_pub.publish(String(data=json.dumps(gains)))
+
 
     def speed_callback(self, msg):
         self.speed_factor = msg.data
         self.yaw_pid.set_output_limits((-self.speed_factor, self.speed_factor))
         self.depth_pid.set_output_limits((-self.speed_factor, self.speed_factor))
+        self.pitch_pid.set_output_limits((-self.speed_factor, self.speed_factor))
 
     def joy_callback(self, msg):
         try:
@@ -64,7 +141,32 @@ class ROVController(Node):
         except json.JSONDecodeError:
             pass
 
+    def check_telemetry_timeout(self):
+        # if self.last_telemetry_time is None:
+        #     return
+
+        elapsed = (self.get_clock().now() - self.last_telemetry_time).nanoseconds / 1e9
+        if elapsed > self.telemetry_timeout:
+            if not self.telemetry_timed_out:
+                self.initialized = False
+                self.telemetry_timed_out = True
+
+            cmd = {
+                'fb': self.joy_fb,
+                'rl': self.joy_rl,
+                'ud': self.joy_ud,
+                'yaw': self.joy_yaw,
+                'pitch': self.joy_pitch
+            }
+
+            self.cmd_pub.publish(String(data=json.dumps(cmd)))
+        else:
+            self.telemetry_timed_out = False
+
     def telemetry_callback(self, msg):
+
+        self.last_telemetry_time = self.get_clock().now()
+
         try:
             data = json.loads(msg.data)
             self.current_yaw = data.get('yaw', 0.0)
