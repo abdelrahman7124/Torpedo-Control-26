@@ -50,10 +50,10 @@ class ROVController(Node):
         self.create_timer(1.0, self.publish_current_gains)
 
         self.last_telemetry_time  = self.get_clock().now()
-        self.telemetry_timeout = 0.1 
+        self.telemetry_timeout = 0.5 
         self.telemetry_timed_out = False
 
-        self.create_timer(0.1, self.check_telemetry_timeout)
+        self.create_timer(0.05, self.check_telemetry_timeout)
         
 
         self.get_logger().info("✅ Controller started")

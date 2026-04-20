@@ -49,8 +49,8 @@ class ThrustersMixer(Node):
             if max_output > 1.0:
                 outputs = [output / max_output for output in outputs]
 
-            pwm = [int(1500 + output * 400) for output in outputs]
-            pwm = [max(1100, min(1900, p)) for p in pwm]
+            pwm = [int(1500 + output * 300) for output in outputs]
+            pwm = [max(1200, min(1800, p)) for p in pwm]
 
             pwm_msg = Int32MultiArray()
             pwm_msg.data = pwm
