@@ -17,8 +17,8 @@ void setupThrusters() {
     for (int i = 0; i < NUM_THRUSTERS; i++) {
         thrusters[i].attach(thrusterPins[i], 1000, 2000);
         thrusters[i].writeMicroseconds(1500);
-        delay(2000);
     }
+    delay(2000);
 }
 
 void setupGripper() {
@@ -72,4 +72,5 @@ void drive(ROVCommand cmd) {
     }
     gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
+    delay(100);
 }

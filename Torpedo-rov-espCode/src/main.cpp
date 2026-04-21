@@ -63,13 +63,16 @@ void loop() {
         recoverNetwork();
     }
     if (incomingCmd != NULL) {
-        lastRcvdTime = millis();
         cmd = parseCommand(incomingCmd);
         drive(cmd);
+        lastRcvdTime = millis();
     } else {
         if(millis() - lastRcvdTime > 2000) {
             resetUDP();
             lastRcvdTime = millis();
+            cmd = parseCommand(incomingCmd);
+            drive(cmd);
+            delay(500);
         }
     }
     mySensor.display();
