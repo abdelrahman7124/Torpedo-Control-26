@@ -50,10 +50,10 @@ class ROVController(Node):
         self.create_timer(1.0, self.publish_current_gains)
 
         self.last_telemetry_time  = self.get_clock().now()
-        self.telemetry_timeout = 0.1 
+        self.telemetry_timeout = 0.5 
         self.telemetry_timed_out = False
 
-        self.create_timer(0.02, self.check_telemetry_timeout)
+        self.create_timer(0.05, self.check_telemetry_timeout)
         
 
         self.get_logger().info("✅ Controller started")
@@ -148,7 +148,6 @@ class ROVController(Node):
         elapsed = (self.get_clock().now() - self.last_telemetry_time).nanoseconds / 1e9
         if elapsed > self.telemetry_timeout:
             if not self.telemetry_timed_out:
-                self.initialized = False
                 self.telemetry_timed_out = True
 
             cmd = {
@@ -193,6 +192,18 @@ class ROVController(Node):
                 )
                 return
             
+            if self.telemetry_timed_out:
+                self.target_yaw = self.current_yaw
+                self.target_depth = self.current_depth
+                self.target_pitch = self.current_pitch
+                self.yaw_pid.set_setpoint(self.target_yaw)
+                self.yaw_pid.set_setpoint(self.target_yaw)
+                self.yaw_pid.set_setpoint(self.target_yaw)
+                self.yaw_pid.reset()
+                self.depth_pid.reset()
+                self.pitch_pid.reset()
+                
+            
             yaw_active = True if abs(self.joy_yaw) > 0.0 else False
             ud_active = True if abs(self.joy_ud) > 0.0 else False
             pitch_active = True if abs(self.joy_pitch) > 0.0 else False
@@ -206,12 +217,20 @@ class ROVController(Node):
             self.prev_ud_active = ud_active
             self.prev_pitch_active = pitch_active
 
+            # cmd = {
+            #     'fb': self.joy_fb,
+            #     'rl': self.joy_rl,
+            #     'ud': ud_cmd,
+            #     'yaw': yaw_cmd,
+            #     'pitch': pitch_cmd
+            # }
+
             cmd = {
                 'fb': self.joy_fb,
                 'rl': self.joy_rl,
-                'ud': ud_cmd,
-                'yaw': yaw_cmd,
-                'pitch': pitch_cmd
+                'ud': self.joy_ud,
+                'yaw': self.joy_yaw,
+                'pitch': self.joy_pitch
             }
             
             self.cmd_pub.publish(String(data=json.dumps(cmd)))

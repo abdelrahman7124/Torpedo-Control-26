@@ -22,10 +22,11 @@ class ROVInput(Node):
         # self.BTN_HIGH_SPEED = 9
 
         self.BTN_ROTATE = 8
+        self.BTN_ENABLE_PID = 9
 
         self.DEADZONE = 0.5
 
-        self.speed_mode = "continuous"
+        self.speed_mode = "discrete"
         self.speed_levels = [0.33, 0.66, 1]
         self.speed_tags = ["LOW", "MEDIUM", "HIGH"]
         self.speed_index = 0    # 0: Low, 1: Medium, 2: High

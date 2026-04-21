@@ -34,12 +34,12 @@ class GripperController(Node):
 
             if buttons[self.BTN_GRIPPER_SERVO_RIGHT] == 1:
                 self.get_logger().info("Gripper SERVO RIGHT")
-                self.servo_value = 1700
+                self.servo_value = 180
             elif buttons[self.BTN_GRIPPER_SERVO_LEFT] == 1:
                 self.get_logger().info("Gripper SERVO LEFT")
-                self.servo_value = 1300
+                self.servo_value = 0
             else:
-                self.servo_value = 1500
+                self.servo_value = 90
 
             self.prev_buttons = buttons
 
