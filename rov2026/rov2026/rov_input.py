@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32, String
+from std_msgs.msg import Float32, String, Bool
 import json
 
 
@@ -24,7 +24,7 @@ class ROVInput(Node):
         self.BTN_ROTATE = 8
         self.BTN_ENABLE_PID = 9
 
-        self.DEADZONE = 0.5
+        self.DEADZONE = 0.3
 
         self.speed_mode = "discrete"
         self.speed_levels = [0.33, 0.66, 1]
@@ -35,12 +35,16 @@ class ROVInput(Node):
 
         self.move_mode = "normal"
 
+        self.pid_enabled = 0
+        
+
 
         self.create_subscription(String, 'joy_raw', self.joy_callback, 10)
         
         self.joy_pub = self.create_publisher(String, 'joy_processed', 10)
         self.speed_pub = self.create_publisher(Float32, 'speed_factor', 10)
         self.move_mode_pub = self.create_publisher(String, 'move_mode', 10)
+        self.pid_enable_pub = self.create_publisher(Bool, 'pid_enable', 10)
 
         self.get_logger().info("✅ ROVInput node started")
     
@@ -49,6 +53,18 @@ class ROVInput(Node):
             return False
         return buttons[index] == 1 and self.prev_buttons[index] == 0
     
+    
+    def handle_pid(self, buttons):
+        if self.is_btn_pressed(buttons, self.BTN_ENABLE_PID):
+            self.pid_enabled = 1 - self.pid_enabled
+            if self.pid_enabled == 1:
+                self.get_logger().info("PID Enabled")
+            else:
+                self.get_logger().info("PID Disabled")
+            msg = Bool()
+            msg.data = True if self.pid_enabled else False
+            self.pid_enable_pub.publish(msg)
+
     def handle_speed(self, buttons):
 
         speed_factor = 1
@@ -107,6 +123,7 @@ class ROVInput(Node):
                 return
             
             self.handle_speed(buttons)
+            self.handle_pid(buttons)
 
             up = self.map_range(axes[self.AXIS_UP], 1, -1, 0, 1)
             down = self.map_range(axes[self.AXIS_DOWN], 1, -1, 0, -1)

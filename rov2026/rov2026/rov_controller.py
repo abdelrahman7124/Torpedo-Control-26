@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Float32
+from std_msgs.msg import String, Float32, Bool
 import json
 from .pid import PID
 
@@ -39,6 +39,9 @@ class ROVController(Node):
 
         self.speed_factor = 1.0
 
+        self.pid_enabled = 0
+        self.pid_changed = 0
+
         
 
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
@@ -47,10 +50,11 @@ class ROVController(Node):
         self.cmd_pub = self.create_publisher(String, 'rov_commands', 10)
         self.create_subscription(String, 'pid_gains', self.gains_callback, 10)
         self.gains_pub = self.create_publisher(String, 'pid_gains_current', 10)
+        self.create_subscription(Bool, 'pid_enable', self.pid_enable_callback, 10)
         self.create_timer(1.0, self.publish_current_gains)
 
         self.last_telemetry_time  = self.get_clock().now()
-        self.telemetry_timeout = 0.5 
+        self.telemetry_timeout = 0.5
         self.telemetry_timed_out = False
 
         self.create_timer(0.05, self.check_telemetry_timeout)
@@ -122,6 +126,13 @@ class ROVController(Node):
         self.gains_pub.publish(String(data=json.dumps(gains)))
 
 
+    def pid_enable_callback(self, msg):
+        self.pid_enabled = msg.data
+        self.pid_changed = True
+
+        if not self.pid_enabled and self.pid_changed:
+            self.initialized = False
+
     def speed_callback(self, msg):
         self.speed_factor = msg.data
         self.yaw_pid.set_output_limits((-self.speed_factor, self.speed_factor))
@@ -173,7 +184,7 @@ class ROVController(Node):
             self.current_pitch = data.get('pitch', 0.0)
 
 
-            if not self.initialized:
+            if not self.initialized and self.pid_enabled:
                 self.target_yaw = self.current_yaw
                 self.target_depth = self.current_depth
                 self.target_pitch = self.current_pitch
@@ -192,7 +203,7 @@ class ROVController(Node):
                 )
                 return
             
-            if self.telemetry_timed_out:
+            if self.telemetry_timed_out: #or (self.pid_changed and self.pid_enabled):
                 self.target_yaw = self.current_yaw
                 self.target_depth = self.current_depth
                 self.target_pitch = self.current_pitch
@@ -208,30 +219,31 @@ class ROVController(Node):
             ud_active = True if abs(self.joy_ud) > 0.0 else False
             pitch_active = True if abs(self.joy_pitch) > 0.0 else False
 
+            fb_cmd = self.joy_fb
+            rl_cmd = self.joy_rl
 
-            yaw_cmd = self.compute_yaw(yaw_active)
-            ud_cmd = self.compute_depth(ud_active)
-            pitch_cmd = self.compute_pitch(pitch_active)
+            if self.pid_enabled:
+                yaw_cmd = self.compute_yaw(yaw_active)
+                ud_cmd = self.compute_depth(ud_active)
+                pitch_cmd = self.compute_pitch(pitch_active)
+
+            else:
+                yaw_cmd = self.joy_yaw
+                ud_cmd = self.joy_ud
+                pitch_cmd = self.joy_pitch
+
+            cmd = {
+                'fb': fb_cmd,
+                'rl': rl_cmd,
+                'ud': ud_cmd,
+                'yaw': yaw_cmd,
+                'pitch': pitch_cmd
+            }
 
             self.prev_yaw_active = yaw_active
             self.prev_ud_active = ud_active
             self.prev_pitch_active = pitch_active
-
-            # cmd = {
-            #     'fb': self.joy_fb,
-            #     'rl': self.joy_rl,
-            #     'ud': ud_cmd,
-            #     'yaw': yaw_cmd,
-            #     'pitch': pitch_cmd
-            # }
-
-            cmd = {
-                'fb': self.joy_fb,
-                'rl': self.joy_rl,
-                'ud': self.joy_ud,
-                'yaw': self.joy_yaw,
-                'pitch': self.joy_pitch
-            }
+            self.pid_changed = False
             
             self.cmd_pub.publish(String(data=json.dumps(cmd)))
 
