@@ -1,11 +1,13 @@
+#include <EEPROM.h>
 #include "main.h"
    
 void setup() 
 {
     Serial.begin(9600);
-    Wire.begin(1,2);
-    bmp.init();
     connection.connect_init();
+    EEPROM.begin(EEPROM_RESERVED_SPACE);
+    Wire.begin(SDA_PIN, SCL_PIN);
+    action.control.bmp.init();
     sampling_current_time = 0;
     sampling_prev_time = 0;
     first_dive_flag = false;
@@ -13,36 +15,69 @@ void setup()
     second_stop_flag = false;
     second_dive_flag = false;
     rise_flag = false;
-
-    reset_enable = false;
+    begin_flag = true;
+    mission_start_flag = false;
+    system_mode = SYSTEM_MODE;
+    begin = "Begin";
 }
 
 void loop()
 {
-    mission_state = execute_mission();
-
-    if (mission_state == MISSION_COMPLETE)
+    //check.checkSystem();
+    if(begin_flag)
     {
-        send_msg();
+        mission_start_flag = (begin == connection.receive_data());
+        if(mission_start_flag)
+        {
+            LOG_INFO("%s", "Mission Start");
+            connection.close();
+            begin_flag = false;
+        }    
     }
 
-    if((mission_state == RESET) && (reset_enable))
+    else if(system_mode == CALIBRATION_MODE)
     {
-        first_dive_flag = false;
-        first_stop_flag = false;
-        second_stop_flag = false;
-        second_dive_flag = false;
-        rise_flag = false;
+        calibration_state = calibration.tune();
+        
+        if(calibration_state == CALIBRATED)
+        {
+            system_mode = MISSION_MODE;
+        }
     }
+
+    else if(system_mode == MISSION_MODE)
+    {
+        if(mission_start_flag)
+        {
+            mission_state = execute_mission();
+            if (mission_state == MISSION_COMPLETE)
+            {
+                connection.connect_init();
+                send_msg();
+            }
+
+            if((mission_state == RESET) && (RESET_FLAG))
+            {
+                first_dive_flag = false;
+                first_stop_flag = false;
+                second_stop_flag = false;
+                second_dive_flag = false;
+                rise_flag = false;
+                mission_start_flag = false; 
+                begin_flag = true;
+            }
+        }
+    }
+    
 }
 
 //-------------------------------------------------Functions---------------------------------------------------------
 void get_bmp_readings()
 {
     pressure_data data;
-    data.time_stamp = bmp.getTime();
-    data.depth = bmp.readDepth();
-    data.pressure = bmp.readPressure();
+    data.time_stamp = rtc.get_timeStamp();
+    data.depth = action.control.bmp.readDepth();
+    data.pressure = action.control.bmp.readPressure();
     pressure_log.push(data);
 }
 
@@ -60,6 +95,8 @@ void send_msg()
         connection.send_data(msg);
         pressure_log.pop();
     }
+
+    connection.close();
 }
 
 
@@ -102,7 +139,7 @@ MovementState execute_mission()
         return HOVERING;
     }
 
-    if(!second_dive_flag)
+    else if(!second_dive_flag)
     {
         sample_readings();
         
@@ -115,7 +152,7 @@ MovementState execute_mission()
         
     }
 
-    if(!second_stop_flag)
+    else if(!second_stop_flag)
     {
         sample_readings();
         
@@ -127,7 +164,7 @@ MovementState execute_mission()
         return HOVERING;
     }
 
-    if(!rise_flag)
+    else if(!rise_flag)
     {
         sample_readings();
 

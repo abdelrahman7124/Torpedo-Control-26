@@ -10,7 +10,7 @@ Description: Handles the movement logic of the system
     #include "movement_config.h"
     #include "control.h"
     #include "bmp.h"
-    #include <pid.h>
+    #include "pid.h"
 
     enum MovementState 
     { 
@@ -29,10 +29,6 @@ Description: Handles the movement logic of the system
     class Movement
     {
         private:
-            BMP bmp;
-            Control control;
-            PID pid;
-
             int power_up;
             int power_down;
             
@@ -53,6 +49,7 @@ Description: Handles the movement logic of the system
             MovementState dive(float depth);
             MovementState hold(float time);
             MovementState rise_to_surface();
+            Control control;
     };
 
 

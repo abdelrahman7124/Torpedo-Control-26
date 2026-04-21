@@ -1,6 +1,6 @@
 #include "wireless.h"
 
-wireless::wireless() : server(0)
+wireless::wireless() : server(DEFAULT_PORT)
 {
     strncpy(this->ssid, DEFAULT_SSID, sizeof(this->ssid));
     this->ssid[sizeof(this->ssid) - 1] = '\0';
@@ -102,7 +102,7 @@ void wireless::connect_init()
 {
     WiFi.mode(WIFI_AP);
     WiFi.softAP(this->ssid, this->password);
-    server = WiFiServer(this->port);
+    server = WiFiServer(this->port); 
     server.begin();
 }
 
@@ -122,4 +122,28 @@ void wireless::send_data(const String msg)
 wl_status_t wireless::check_connection() const
 {
     return WiFi.status();
+}
+
+void wireless::close()
+{
+    client.stop();
+    server.close();
+    LOG_INFO("%s", "Connection closed.");
+}
+
+String wireless::receive_data()
+{
+    update();
+    if (client && client.connected())
+    {
+        client.setTimeout(1000);
+        String msg = client.readStringUntil('\n');
+        msg.trim();
+        if (msg.length() > 0)
+        {
+            LOG_INFO("Received: %s", msg.c_str());
+            return msg;
+        }
+    }
+    return "";
 }

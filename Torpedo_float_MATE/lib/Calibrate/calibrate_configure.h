@@ -1,15 +1,14 @@
-#ifndef MOVEMENT_CONFIG_H
-    #define MOVEMENT_CONFIG_H    
-    #define GREEN   "\x1b[32m"
-    #define YELLOW  "\x1b[33m"
+#ifndef CALIBRATE_CONFIGURE_H
+    #define CALIBRATE_CONFIGURE_H
 
-    #define SEA_LEVEL_DEPTH 0.00
-    #define DEPTH_THRESHOLD 0.01
-    #define SURFACE_THRESHOLD 0.01
+    #define CALIBRATION_DEPTH 2
+    #define CONVERGE_THRESHOLD 0.2
 
-    #define MILLISECOND_IN_SECOND 1000.00
+    #define KP_STORE_ADDRESS 0
+    #define KI_STORE_ADDRESS 4
+    #define KD_STORE_ADDRESS 8
 
-    #ifndef ENABLE_LOGGING
+     #ifndef ENABLE_LOGGING
         #define ENABLE_LOGGING 1
     #endif
 
@@ -28,5 +27,5 @@
         #define LOG_WARN(...) 
         #define LOG_ERROR(...)
     #endif
-    
+
 #endif

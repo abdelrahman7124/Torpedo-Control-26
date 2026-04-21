@@ -7,9 +7,9 @@ class Plot():
         self.depth_axis = []
         self.time_axis = []
     
-    def plot(self,depth):
+    def plot(self,depth,time):
         self.depth_axis = depth
-        self.time_axis = [(i * self.sample_duration) for i in range(len(self.depth_axis))]
+        self.time_axis = time
 
         plt.plot(self.time_axis,self.depth_axis)
         

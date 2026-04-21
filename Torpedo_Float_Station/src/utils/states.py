@@ -5,3 +5,4 @@ class WiFiState(Enum):
     FOUND = 1
     ERROR = 2
     RECEIVING = 3
+    DISCONNECTED = 4

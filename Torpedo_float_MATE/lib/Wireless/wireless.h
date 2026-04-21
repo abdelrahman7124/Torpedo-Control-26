@@ -40,10 +40,11 @@ class wireless
         const IPAddress get_clientIP() const;
         const IPAddress get_serverIP() const;
         int get_port() const;
-        
         void connect_init();
         void send_data(const String msg);
         wl_status_t check_connection() const;
+        String receive_data();
+        void close();
 };
 
 #endif

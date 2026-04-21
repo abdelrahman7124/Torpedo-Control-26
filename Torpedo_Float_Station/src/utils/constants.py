@@ -5,7 +5,7 @@ DEFAULT_PORT = 1234
 BUFFER_SIZE = 1024
 RESET_DURATION = 1
 PACKET_SIZE = 3
-DATA_INDEX = 1
-
-#===================================================Plot Settings========================================================
-SAMPLE_DURATION = 1
+DEPTH_INDEX = 1
+TIME_INDEX = 0
+MAX_TIMOUT_COUNT = 5
+CONNECTION_TIMEOUT_DURATION = 3

@@ -14,9 +14,10 @@ Description: The main file that handles the whole system
     #include "movement.h"
     #include "bmp.h"
     #include "system_check.h"
+    #include "calibrate.h"
+    #include "rtc.h"
     #include "main_config.h"
     
-
 
     struct pressure_data
     {
@@ -33,8 +34,12 @@ Description: The main file that handles the whole system
     std::queue <pressure_data> pressure_log;
 
     wireless connection;
-    BMP bmp;
     Movement action;
+    calibrate calibration;
+    SystemCheck check;
+    RTC rtc;
+
+    String begin;
 
     float depth;
     float pressure;
@@ -42,6 +47,9 @@ Description: The main file that handles the whole system
     String time_stamp;
     
     String msg;
+    
+    bool begin_flag;
+    bool mission_start_flag;
 
     bool first_dive_flag;
     bool first_stop_flag;
@@ -49,9 +57,10 @@ Description: The main file that handles the whole system
     bool second_stop_flag;
     bool rise_flag;
 
-    bool reset_enable;
 
     MovementState mission_state;
+    CalibrationState calibration_state;
+    SystemMode system_mode;
 
     unsigned long sampling_current_time;
     unsigned long sampling_prev_time;

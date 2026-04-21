@@ -20,6 +20,9 @@ Description: Checks all sencors,acutators and communications of the system to en
         Control control;
         wireless connection;
 
+        ControlState motor_state;
+        bool direction_flag;
+
         float pressure;
         float depth;
         String time_stamp;

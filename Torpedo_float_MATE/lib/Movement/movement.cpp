@@ -29,7 +29,7 @@ MovementState Movement::dive(float depth)
 
     if(!this->dive_flag)
     {
-        this->pid.set_goal(this->target_depth);
+        control.pid.set_goal(this->target_depth);
         this->prev_target_depth = this->target_depth;
         this->movement_prev_time = millis();
         this->dive_flag = true;
@@ -37,25 +37,25 @@ MovementState Movement::dive(float depth)
     
     this->movement_current_time = millis();
 
-    this->current_depth = this->bmp.readDepth();
-    this->pid.set_reading(this->current_depth);
+    this->current_depth = control.bmp.readDepth();
+    control.pid.set_reading(this->current_depth);
     
     this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
-    this->pid.set_dt(this->movement_dt);
+    control.pid.set_dt(this->movement_dt);
     this->movement_prev_time = this->movement_current_time;
 
-    double output = this->pid.run();
+    double output = control.pid.run();
     
     if(output > DEPTH_THRESHOLD)
     {
-        this->control.setPower_down(output);
+        this->control.setPower_down(MAX_MOTOR_OUTPUT);
         this->control.down();
         return DIVING;
     }
 
     else if (output < -DEPTH_THRESHOLD)
     {
-        this->control.setPower_up(abs(output));
+        this->control.setPower_up(MAX_MOTOR_OUTPUT);
         this->control.up();
         return SURFACING;
     }
@@ -95,27 +95,27 @@ MovementState Movement::rise_to_surface()
     if(!this->rise_flag)
     {
         this->target_depth = SEA_LEVEL_DEPTH;
-        this->pid.set_goal(this->target_depth);
+        control.pid.set_goal(this->target_depth);
         this->movement_prev_time = millis();
         this->rise_flag = true;
     }
     
-    this->current_depth = this->bmp.readDepth();
+    this->current_depth = control.bmp.readDepth();
     
     this->movement_current_time = millis();
     
     this->movement_dt = (this->movement_current_time - this->movement_prev_time)/MILLISECOND_IN_SECOND;
 
-    this->pid.set_reading(this->current_depth);
-    this->pid.set_dt(this->movement_dt);
+    control.pid.set_reading(this->current_depth);
+    control.pid.set_dt(this->movement_dt);
 
     this->movement_prev_time = this->movement_current_time;
 
-    double output = this->pid.run();
+    double output = control.pid.run();
 
     if (output < -SURFACE_THRESHOLD)
     {
-        this->control.setPower_up(abs(output));
+        this->control.setPower_up(MAX_MOTOR_OUTPUT);
         this->control.up();
         return SURFACING;
     }
