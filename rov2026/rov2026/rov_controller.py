@@ -39,8 +39,8 @@ class ROVController(Node):
 
         self.speed_factor = 1.0
 
-        self.pid_enabled = 0
-        self.pid_changed = 0
+        self.pid_enabled = False
+        self.pid_changed = False
 
         
 
@@ -130,7 +130,12 @@ class ROVController(Node):
         self.pid_enabled = msg.data
         self.pid_changed = True
 
-        if not self.pid_enabled and self.pid_changed:
+        if not self.pid_enabled:
+            self.initialized = False
+        else:
+            self.yaw_pid.reset()
+            self.depth_pid.reset()
+            self.pitch_pid.reset()
             self.initialized = False
 
     def speed_callback(self, msg):
@@ -160,6 +165,7 @@ class ROVController(Node):
         if elapsed > self.telemetry_timeout:
             if not self.telemetry_timed_out:
                 self.telemetry_timed_out = True
+                self.initialized = False
 
             cmd = {
                 'fb': self.joy_fb,
@@ -191,9 +197,12 @@ class ROVController(Node):
                 self.yaw_pid.set_setpoint(self.target_yaw)
                 self.depth_pid.set_setpoint(self.target_depth)
                 self.pitch_pid.set_setpoint(self.target_pitch)
-                self.yaw_pid.set_output_limits((-1.0, 1.0))
-                self.depth_pid.set_output_limits((-1.0, 1.0))
-                self.pitch_pid.set_output_limits((-1.0, 1.0))
+                self.yaw_pid.reset()
+                self.depth_pid.reset()
+                self.pitch_pid.reset()
+                self.yaw_pid.set_output_limits((-self.speed_factor, self.speed_factor))
+                self.depth_pid.set_output_limits((-self.speed_factor, self.speed_factor))
+                self.pitch_pid.set_output_limits((-self.speed_factor, self.speed_factor))
 
                 self.initialized = True
                 self.get_logger().info(
@@ -203,16 +212,16 @@ class ROVController(Node):
                 )
                 return
             
-            if self.telemetry_timed_out: #or (self.pid_changed and self.pid_enabled):
-                self.target_yaw = self.current_yaw
-                self.target_depth = self.current_depth
-                self.target_pitch = self.current_pitch
-                self.yaw_pid.set_setpoint(self.target_yaw)
-                self.yaw_pid.set_setpoint(self.target_yaw)
-                self.yaw_pid.set_setpoint(self.target_yaw)
-                self.yaw_pid.reset()
-                self.depth_pid.reset()
-                self.pitch_pid.reset()
+            # if self.telemetry_timed_out: #or (self.pid_changed and self.pid_enabled):
+            #     self.target_yaw = self.current_yaw
+            #     self.target_depth = self.current_depth
+            #     self.target_pitch = self.current_pitch
+            #     self.yaw_pid.set_setpoint(self.target_yaw)
+            #     self.depth_pid.set_setpoint(self.target_depth)
+            #     self.pitch_pid.set_setpoint(self.target_pitch)
+            #     self.yaw_pid.reset()
+            #     self.depth_pid.reset()
+            #     self.pitch_pid.reset()
                 
             
             yaw_active = True if abs(self.joy_yaw) > 0.0 else False

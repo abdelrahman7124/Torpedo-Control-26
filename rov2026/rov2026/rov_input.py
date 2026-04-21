@@ -35,7 +35,7 @@ class ROVInput(Node):
 
         self.move_mode = "normal"
 
-        self.pid_enabled = 0
+        self.pid_enabled = False
         
 
 
@@ -56,8 +56,8 @@ class ROVInput(Node):
     
     def handle_pid(self, buttons):
         if self.is_btn_pressed(buttons, self.BTN_ENABLE_PID):
-            self.pid_enabled = 1 - self.pid_enabled
-            if self.pid_enabled == 1:
+            self.pid_enabled = not self.pid_enabled
+            if self.pid_enabled:
                 self.get_logger().info("PID Enabled")
             else:
                 self.get_logger().info("PID Disabled")
