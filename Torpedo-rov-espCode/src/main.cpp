@@ -62,16 +62,17 @@ void loop() {
     if(!checkNetworkHealth()){
         recoverNetwork();
     }
+    
+    cmd = parseCommand(incomingCmd);
+    drive(cmd);
+
+    // Reset UDP if dissconnected
     if (incomingCmd != NULL) {
-        cmd = parseCommand(incomingCmd);
-        drive(cmd);
         lastRcvdTime = millis();
     } else {
         if(millis() - lastRcvdTime > 2000) {
             resetUDP();
             lastRcvdTime = millis();
-            cmd = parseCommand(incomingCmd);
-            drive(cmd);
             delay(500);
         }
     }

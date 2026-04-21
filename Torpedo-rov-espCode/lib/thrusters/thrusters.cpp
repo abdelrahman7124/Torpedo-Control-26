@@ -42,6 +42,8 @@ ROVCommand parseCommand(char* packetBuffer) {
     cmd.gripperAngle = 90;
     cmd.gripperOpen = 0;
 
+    if (packetBuffer == NULL) return cmd;
+
     int index = 0;
     char* token = strtok(packetBuffer, ",");
 
