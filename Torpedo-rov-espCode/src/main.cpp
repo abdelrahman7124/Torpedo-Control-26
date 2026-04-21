@@ -20,11 +20,18 @@ float roll, pitch, yaw;
 Pressure mySensor;
 unsigned long prevSendMillis = 0;
 unsigned long lastRcvdTime = 0;
+
+ static unsigned long dhcpTimer = 0;
+ static unsigned long imuTimer = 0;
+
+ ROVCommand cmd;
+
 void setup() {
     mySensor.init();
     setupThrusters();
+    setupGripper();
     delay(1000);
-    int data = ethernet_setup(IPAddress(192,168,1,55), IPAddress(192,168,1,2), 9000, 5);
+    int data = ethernet_setup(IPAddress(192,168,1,44), IPAddress(192,168,1,2), 9000, 5);
     mySensor.depthInitialization();
     Wire.begin(SDA, SCL);
     imu.initialize();
@@ -35,7 +42,6 @@ void setup() {
 }
 
 void loop() {
-    static unsigned long imuTimer = 0;
     if (millis() - imuTimer >= 10) { 
         imu.update();
         roll = drift_negation_roll.filter(imu.getRoll());
@@ -47,7 +53,6 @@ void loop() {
         
         imuTimer = millis();
     }
-    static unsigned long dhcpTimer = 0;
     if (millis() - dhcpTimer > 2000) {
         MaintainEthernet();
         dhcpTimer = millis();
@@ -59,10 +64,8 @@ void loop() {
     }
     if (incomingCmd != NULL) {
         lastRcvdTime = millis();
-        if(strcmp(incomingCmd, "-1") == 0) {
-            ESP.restart();
-        }
-        parseAndDrive(incomingCmd);
+        cmd = parseCommand(incomingCmd);
+        drive(cmd);
     } else {
         if(millis() - lastRcvdTime > 2000) {
             resetUDP();

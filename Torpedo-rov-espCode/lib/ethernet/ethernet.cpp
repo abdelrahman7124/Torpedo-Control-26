@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 30);
+IPAddress ip(192, 168, 1, 44);
 unsigned int localPort = 8881;
 IPAddress targetIP(192, 168, 1, 2);
 EthernetUDP Udp;
