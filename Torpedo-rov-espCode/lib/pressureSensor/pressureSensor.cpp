@@ -149,6 +149,8 @@ void Pressure::display() {
   Serial.print("temperature = ");
   Serial.print(this->temp);
   Serial.println(" °C");
+  float depth = abs((this->pressure - 1013.25) * 100 / (9.80665 * 997));
+  Serial.println(depth);
   Serial.println("************************************");
 }
 
@@ -183,11 +185,13 @@ void Pressure::depthInitialization() {
 }
 
 float Pressure::getDepth() {
-  float diffPressure = (float)this->pressure - this->oldPressure;
-  float depthMeters = diffPressure / 98.1; 
+  //float diffPressure = (float)this->pressure - this->oldPressure;
+  //float depthMeters = diffPressure / 98.1; 
   // if (depthMeters < 0) {
   //   depthMeters = 0.0;
   // }
+  float depth = abs((this->pressure - 1013.25) * 100 / (9.80665 * 997));
 
-  return depthMeters;
+
+  return depth;
 }

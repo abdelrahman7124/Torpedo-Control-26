@@ -9,9 +9,22 @@
 Servo thrusters[NUM_THRUSTERS];
 Servo gripperServo;
 
-const int thrusterPins[NUM_THRUSTERS] = {16, 25, 27, 26, 4, 32};
+// const int thrusterPins[NUM_THRUSTERS] = {16, 25, 27, 26, 4, 32};
+const int thrusterPins[NUM_THRUSTERS] = {26, 27, 32, 4, 25, 16};
 const int gripperServoPin = 17;
 const int gripperPin = 33;
+
+/*
+Thruster Pins:
+16:  Vertical Back
+25:  Vertical Front
+Horizontal
+27:  Front left
+26: Front right
+4:  back right
+32: back left
+*/
+
 
 void setupThrusters() {
     for (int i = 0; i < NUM_THRUSTERS; i++) {
@@ -74,5 +87,5 @@ void drive(ROVCommand cmd) {
     }
     gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
-    delay(60);
+    delay(100);
 }

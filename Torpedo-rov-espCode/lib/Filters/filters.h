@@ -1,7 +1,14 @@
+/*
+Author: Marwan Aly
+Project: Filters for sensor readings
+Team: Torpedo ROV
+Description: Includes different types of filters to handle sensor readings 
+*/
+
 #ifndef FILTERS_H
 #define FILTERS_H
 
-#include <math.h>
+#include "filters_config.h"
 
 class KALMAN
 {
