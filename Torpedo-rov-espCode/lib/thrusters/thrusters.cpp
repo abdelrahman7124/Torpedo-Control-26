@@ -74,5 +74,5 @@ void drive(ROVCommand cmd) {
     }
     gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
-    delay(100);
+    delay(60);
 }
