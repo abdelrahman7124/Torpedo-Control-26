@@ -73,7 +73,6 @@ void loop() {
         if(millis() - lastRcvdTime > 2000) {
             resetUDP();
             lastRcvdTime = millis();
-            delay(500);
         }
     }
     mySensor.display();
