@@ -14,12 +14,12 @@ from PySide6.QtCore import Qt, QTimer
 
 
 THRUSTER_NAMES = [
-    "Front Left",
     "Front Right",
-    "Back Left",
+    "Front Left",
     "Back Right",
-    "Top Left",
-    "Top Right"
+    "Back Left",
+    "Top Front",
+    "Top Back"
 ]
 
 FACTORS_DIR = os.path.join(os.path.expanduser("~"), "rov_factors")

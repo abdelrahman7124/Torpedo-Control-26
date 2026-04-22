@@ -165,7 +165,6 @@ class ROVController(Node):
         if elapsed > self.telemetry_timeout:
             if not self.telemetry_timed_out:
                 self.telemetry_timed_out = True
-                self.initialized = False
 
             cmd = {
                 'fb': self.joy_fb,
@@ -212,16 +211,16 @@ class ROVController(Node):
                 )
                 return
             
-            # if self.telemetry_timed_out: #or (self.pid_changed and self.pid_enabled):
-            #     self.target_yaw = self.current_yaw
-            #     self.target_depth = self.current_depth
-            #     self.target_pitch = self.current_pitch
-            #     self.yaw_pid.set_setpoint(self.target_yaw)
-            #     self.depth_pid.set_setpoint(self.target_depth)
-            #     self.pitch_pid.set_setpoint(self.target_pitch)
-            #     self.yaw_pid.reset()
-            #     self.depth_pid.reset()
-            #     self.pitch_pid.reset()
+            if self.telemetry_timed_out:
+                self.target_yaw = self.current_yaw
+                self.target_depth = self.current_depth
+                self.target_pitch = self.current_pitch
+                self.yaw_pid.set_setpoint(self.target_yaw)
+                self.depth_pid.set_setpoint(self.target_depth)
+                self.pitch_pid.set_setpoint(self.target_pitch)
+                self.yaw_pid.reset()
+                self.depth_pid.reset()
+                self.pitch_pid.reset()
                 
             
             yaw_active = True if abs(self.joy_yaw) > 0.0 else False
@@ -233,8 +232,10 @@ class ROVController(Node):
 
             if self.pid_enabled:
                 yaw_cmd = self.compute_yaw(yaw_active)
-                ud_cmd = self.compute_depth(ud_active)
-                pitch_cmd = self.compute_pitch(pitch_active)
+                #ud_cmd = self.compute_depth(ud_active)
+                #pitch_cmd = self.compute_pitch(pitch_active)
+                ud_cmd = self.joy_ud
+                pitch_cmd = self.joy_pitch
 
             else:
                 yaw_cmd = self.joy_yaw

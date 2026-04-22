@@ -8,8 +8,8 @@ class GripperController(Node):
         super().__init__('gripper_controller')
 
         self.BTN_GRIPPER_TOGGLE = 0
-        self.BTN_GRIPPER_SERVO_RIGHT = 1
-        self.BTN_GRIPPER_SERVO_LEFT = 3
+        self.BTN_GRIPPER_SERVO_RIGHT = 3
+        self.BTN_GRIPPER_SERVO_LEFT = 1
 
         self.gripper_value = 0
         self.servo_value = 0

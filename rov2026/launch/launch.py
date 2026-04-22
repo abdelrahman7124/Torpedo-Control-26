@@ -58,9 +58,9 @@ def generate_launch_description():
             executable='factors_gui',
             name='factors_gui_node',
         ),
-        Node(
-            package='rov2026',
-            executable='pid_tuner_node',
-            name='pid_tuner',
-        )
+        # Node(
+        #     package='rov2026',
+        #     executable='pid_tuner_node',
+        #     name='pid_tuner',
+        # )
     ])

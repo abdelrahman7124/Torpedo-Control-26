@@ -37,12 +37,12 @@ class ThrustersMixer(Node):
 
             else:
 
-                Thruster_FR = fb + rl + yaw      #Front Right
-                Thruster_FL = fb - rl - yaw      #Front Left    
-                Thruster_BL = fb - rl + yaw      #Back Left
-                Thruster_BR = fb + rl - yaw      #Back Right
-                Thruster_VF = ud + pitch         #Vertical Front
-                Thruster_VB = ud - pitch         #Vertical Back    
+                Thruster_FR = -fb - rl - yaw      #Front Right
+                Thruster_FL = -fb + rl + yaw      #Front Left    
+                Thruster_BL = -fb + rl - yaw      #Back Left
+                Thruster_BR = -fb - rl + yaw      #Back Right
+                Thruster_VF = -ud - pitch         #Vertical Front
+                Thruster_VB = -ud + pitch         #Vertical Back    
 
             outputs = [Thruster_FR, Thruster_FL, Thruster_BL, Thruster_BR, Thruster_VF, Thruster_VB]
             max_output = max(abs(output) for output in outputs)
