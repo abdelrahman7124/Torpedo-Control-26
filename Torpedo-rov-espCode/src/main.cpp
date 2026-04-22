@@ -1,12 +1,10 @@
 #include <Arduino.h>
 #include "imu.h"
 #include "ethernet.h"
-#include "pressureSensor.h"
+#include "bmp.h"
 #include "thrusters.h"
 #include "filters.h"
 
-#define SDA 21
-#define SCL 22
 
 IMU imu;
 KALMAN kalman_filter_yaw;
@@ -18,7 +16,8 @@ DRIFTNEGATION drift_negation_pitch;
 DRIFTNEGATION drift_negation_roll;
 
 float roll, pitch, yaw, depth;
-Pressure mySensor;
+
+BMP bmp;
 
 unsigned long previousMillis = 0;
 unsigned long prevSendMillis = 0;  // Remove if unused
@@ -29,14 +28,13 @@ unsigned long imuTimer = 0;        // Fix: removed static
 ROVCommand cmd;
 
 void setup() {
-    Wire.begin(SDA, SCL); 
-    mySensor.init();
+    bmp.init();
+    imu.initialize_connection();
     setupThrusters();
     setupGripper();
     delay(1000);
     ethernet_setup(IPAddress(192,168,1,44), IPAddress(192,168,1,2), 9000, 5);
-    mySensor.depthInitialization();
-    imu.initialize_connection();
+    
     kalman_filter_pitch.set_R(0.2);
     kalman_filter_roll.set_R(0.2);
     drift_negation_pitch.set_threshold(0.2);
@@ -46,14 +44,13 @@ void setup() {
 void loop() {
     if (millis() - imuTimer >= 10) {
         imu.update();
-        mySensor.update();
         roll = drift_negation_roll.filter(imu.getRoll());
         roll = kalman_filter_roll.filter(roll);
         pitch = drift_negation_pitch.filter(imu.getPitch());
         pitch = kalman_filter_pitch.filter(pitch);
         yaw = drift_negation_yaw.filter(imu.getYaw());
         yaw = kalman_filter_yaw.filter(yaw);
-        depth = mySensor.getDepth();
+        depth = bmp.readDepth();
         imuTimer = millis();
     }
 
@@ -80,7 +77,12 @@ void loop() {
         }
     }
 
-    mySensor.display();
+    Serial.print(bmp.getTime());
+    Serial.print(" Pressure: ");
+    Serial.print(bmp.readPressure());
+    Serial.print(" Pa | Depth: ");
+    Serial.print(depth);
+    Serial.println(" m");
 
     if (millis() - previousMillis > 500) {
         float dataArray[4] = {roll, pitch, yaw, depth};

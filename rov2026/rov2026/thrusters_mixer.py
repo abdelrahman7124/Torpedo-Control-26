@@ -10,9 +10,18 @@ class ThrustersMixer(Node):
         self.create_subscription(String, 'rov_commands', self.cmd_callback, 10)
         self.pwm_pub = self.create_publisher(Int32MultiArray, 'pwm_values', 10)
         self.create_subscription(String, 'move_mode', self.move_mode_callback, 10)
+        self.create_subscription(String, 'speed_level', self.speed_level_callback, 10)
+
+        self.speed_level = 'LOW'
+        self.speed_ranges = {"LOW": 200, "MEDIUM": 350, "HIGH": 500}
 
         self.move_mode = "normal"
         self.get_logger().info("Thrusters Mixer Node Initialized")
+
+    
+    def speed_level_callback(self, msg):
+        if msg.data in self.speed_ranges:
+            self.speed_level = msg.data
 
     def move_mode_callback(self, msg):
         self.move_mode = msg.data

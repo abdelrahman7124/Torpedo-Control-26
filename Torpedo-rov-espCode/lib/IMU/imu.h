@@ -29,6 +29,7 @@ class IMU
         unsigned long now;
         unsigned long lastTime;
         bool check;
+        TwoWire I2C_IMU = TwoWire(0);
         
         void readAccelerometer();
         void readGyroscope();

@@ -1,6 +1,6 @@
 #include "pressureSensor.h"
 unsigned long previousMillis2 = 0;
-
+/*
 float threshold1 = 0.5;
 void Pressure::init() {
   hspi = new SPIClass(HSPI);
@@ -11,7 +11,7 @@ void Pressure::init() {
   ledcAttach(MCLK, pwm_Freq, pwm_Resolution);
   if (millis() - previousMillis2 > 500) {
     previousMillis2 = millis();
-  }
+  } 
   delay(100);
   if (millis() - previousMillis2 > 500) {
     previousMillis2 = millis();
@@ -195,3 +195,4 @@ float Pressure::getDepth() {
 
   return depth;
 }
+*/

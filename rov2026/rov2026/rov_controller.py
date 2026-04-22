@@ -42,7 +42,11 @@ class ROVController(Node):
         self.pid_enabled = False
         self.pid_changed = False
 
+        self.STARTUP_DELAY = 1
         
+        self.prev_horizontal_idle = True
+        self.prev_vertical_idle = True
+        self.vertical_hold_until = None
 
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
         self.create_subscription(String, 'rov_telemetry', self.telemetry_callback, 10)
@@ -126,17 +130,89 @@ class ROVController(Node):
         self.gains_pub.publish(String(data=json.dumps(gains)))
 
 
+    # def sequence_and_publish(self, fb, rl, ud, yaw, pitch):
+    #     now = self.get_clock().now()
+    #     horizontal_idle = not (abs(self.joy_fb) or abs(self.joy_rl) or abs(self.joy_yaw))
+    #     vertical_idle = not (abs(self.joy_ud) or abs(self.joy_pitch))
+
+    #     horizontal_starting = self.prev_horizontal_idle and not horizontal_idle
+    #     vertical_starting = self.prev_vertical_idle and not vertical_idle
+
+    #     if horizontal_starting and vertical_starting:
+    #         self.vertical_hold_until = now + rclpy.duration.Duration(seconds=self.STARTUP_DELAY)
+
+    #     self.prev_horizontal_idle = horizontal_idle
+    #     self.prev_vertical_idle = vertical_idle
+
+    #     if self.vertical_hold_until is not None:
+    #         if now < self.vertical_hold_until:
+    #             ud = 0.0
+    #             pitch = 0.0
+    #         else:
+    #             self.vertical_hold_until = None
+        
+    #     cmd = {
+    #         'fb': fb,
+    #         'rl': rl,
+    #         'ud': ud,
+    #         'yaw': yaw,
+    #         'pitch': pitch
+    #     }
+    #     self.cmd_pub.publish(String(data=json.dumps(cmd)))
+
+    #     return ud, pitch
+
+    # ✅ Fix — also catch near-simultaneous starts
+    SIMULTANEOUS_WINDOW = 0.1  # seconds
+
+    def sequence_and_publish(self, fb, rl, ud, yaw, pitch):
+        now = self.get_clock().now()
+        horizontal_idle = not (abs(self.joy_fb) or abs(self.joy_rl) or abs(self.joy_yaw))
+        vertical_idle = not (abs(self.joy_ud) or abs(self.joy_pitch))
+
+        horizontal_starting = self.prev_horizontal_idle and not horizontal_idle
+        vertical_starting = self.prev_vertical_idle and not vertical_idle
+
+        # Track when each axis group started
+        if horizontal_starting:
+            self.horizontal_start_time = now
+        if vertical_starting:
+            self.vertical_start_time = now
+
+        # Delay vertical if both started within a short window
+        if horizontal_starting and vertical_starting:
+            self.vertical_hold_until = now + rclpy.duration.Duration(seconds=self.STARTUP_DELAY)
+        elif vertical_starting and hasattr(self, 'horizontal_start_time'):
+            dt = (now - self.horizontal_start_time).nanoseconds / 1e9
+            if dt < self.SIMULTANEOUS_WINDOW:
+                self.vertical_hold_until = now + rclpy.duration.Duration(seconds=self.STARTUP_DELAY)
+
+        self.prev_horizontal_idle = horizontal_idle
+        self.prev_vertical_idle = vertical_idle
+
+        if self.vertical_hold_until is not None:
+            if now < self.vertical_hold_until:
+                ud = 0.0
+                pitch = 0.0
+            else:
+                self.vertical_hold_until = None
+
+        cmd = {
+            'fb': fb, 'rl': rl, 'ud': ud,
+            'yaw': yaw, 'pitch': pitch
+        }
+        self.cmd_pub.publish(String(data=json.dumps(cmd)))
+        return ud, pitch
+
     def pid_enable_callback(self, msg):
         self.pid_enabled = msg.data
         self.pid_changed = True
+        self.initialized = False
 
-        if not self.pid_enabled:
-            self.initialized = False
+        if self.pid_enabled:
+            self.get_logger().info("🟢 PID enabled — waiting for telemetry to initialize")
         else:
-            self.yaw_pid.reset()
-            self.depth_pid.reset()
-            self.pitch_pid.reset()
-            self.initialized = False
+            self.get_logger().info("🔴 PID disabled — raw joystick mode")
 
     def speed_callback(self, msg):
         self.speed_factor = msg.data
@@ -165,16 +241,27 @@ class ROVController(Node):
         if elapsed > self.telemetry_timeout:
             if not self.telemetry_timed_out:
                 self.telemetry_timed_out = True
+                self.prev_yaw_active = False
+                self.prev_ud_active = False
+                self.prev_pitch_active = False
+                self.prev_horizontal_idle = True
+                self.prev_vertical_idle = True
+                self.vertical_hold_until = None
 
-            cmd = {
-                'fb': self.joy_fb,
-                'rl': self.joy_rl,
-                'ud': self.joy_ud,
-                'yaw': self.joy_yaw,
-                'pitch': self.joy_pitch
-            }
+            self.sequence_and_publish(
+                self.joy_fb, self.joy_rl, self.joy_ud,
+                self.joy_yaw, self.joy_pitch
+            )
 
-            self.cmd_pub.publish(String(data=json.dumps(cmd)))
+            # cmd = {
+            #     'fb': self.joy_fb,
+            #     'rl': self.joy_rl,
+            #     'ud': self.joy_ud,
+            #     'yaw': self.joy_yaw,
+            #     'pitch': self.joy_pitch
+            # }
+
+            # self.cmd_pub.publish(String(data=json.dumps(cmd)))
         else:
             self.telemetry_timed_out = False
 
@@ -202,6 +289,10 @@ class ROVController(Node):
                 self.yaw_pid.set_output_limits((-self.speed_factor, self.speed_factor))
                 self.depth_pid.set_output_limits((-self.speed_factor, self.speed_factor))
                 self.pitch_pid.set_output_limits((-self.speed_factor, self.speed_factor))
+
+                self.prev_horizontal_idle = True
+                self.prev_vertical_idle = True
+                self.vertical_hold_until = None
 
                 self.initialized = True
                 self.get_logger().info(
@@ -242,20 +333,29 @@ class ROVController(Node):
                 ud_cmd = self.joy_ud
                 pitch_cmd = self.joy_pitch
 
-            cmd = {
-                'fb': fb_cmd,
-                'rl': rl_cmd,
-                'ud': ud_cmd,
-                'yaw': yaw_cmd,
-                'pitch': pitch_cmd
-            }
+            actual_ud, actual_pitch = self.sequence_and_publish(
+                fb_cmd, rl_cmd, ud_cmd, yaw_cmd, pitch_cmd
+            )
 
-            self.prev_yaw_active = yaw_active
-            self.prev_ud_active = ud_active
-            self.prev_pitch_active = pitch_active
-            self.pid_changed = False
+            if self.pid_enabled:
+                self.prev_yaw_active = yaw_active
+                self.prev_ud_active = abs(actual_ud) > 0.0 or ud_active
+                self.prev_pitch_active = abs(actual_pitch) > 0.0 or pitch_active
+            else:
+                self.prev_yaw_active = False
+                self.prev_ud_active = False
+                self.prev_pitch_active = False
+
+            # cmd = {
+            #     'fb': fb_cmd,
+            #     'rl': rl_cmd,
+            #     'ud': ud_cmd,
+            #     'yaw': yaw_cmd,
+            #     'pitch': pitch_cmd
+            # }
+
             
-            self.cmd_pub.publish(String(data=json.dumps(cmd)))
+            # self.cmd_pub.publish(String(data=json.dumps(cmd)))
 
         except json.JSONDecodeError:
             pass

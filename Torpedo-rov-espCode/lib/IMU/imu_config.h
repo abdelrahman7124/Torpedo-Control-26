@@ -8,6 +8,8 @@
 
     
     #define IMU_DEFAULT_ADDRESS 0x68
+    #define IMU_SDA 21
+    #define IMU_SCL 22
     
 
     
