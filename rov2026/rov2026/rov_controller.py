@@ -42,7 +42,7 @@ class ROVController(Node):
         self.pid_enabled = False
         self.pid_changed = False
 
-        self.STARTUP_DELAY = 1
+        self.STARTUP_DELAY = 0.2
         
         self.prev_horizontal_idle = True
         self.prev_vertical_idle = True

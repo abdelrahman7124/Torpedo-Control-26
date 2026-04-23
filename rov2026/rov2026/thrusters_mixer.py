@@ -9,10 +9,10 @@ class ThrustersMixer(Node):
 
         self.create_subscription(String, 'rov_commands', self.cmd_callback, 10)
         self.pwm_pub = self.create_publisher(Int32MultiArray, 'pwm_values', 10)
-        self.create_subscription(String, 'move_mode', self.move_mode_callback, 10)
+        #self.create_subscription(String, 'move_mode', self.move_mode_callback, 10)
         self.create_subscription(String, 'speed_level', self.speed_level_callback, 10)
 
-        self.speed_level = 'LOW'
+        self.speed_level = 'MEDIUM'
         self.speed_ranges = {"LOW": 200, "MEDIUM": 350, "HIGH": 500}
 
         self.move_mode = "normal"
@@ -23,8 +23,8 @@ class ThrustersMixer(Node):
         if msg.data in self.speed_ranges:
             self.speed_level = msg.data
 
-    def move_mode_callback(self, msg):
-        self.move_mode = msg.data
+    # def move_mode_callback(self, msg):
+    #     self.move_mode = msg.data
 
     def cmd_callback(self, msg):
         try:
@@ -35,23 +35,23 @@ class ThrustersMixer(Node):
             yaw = data.get('yaw', 0.0)
             pitch = data.get('pitch', 0.0)
 
-            if self.move_mode == "rotate":
+            # if self.move_mode == "rotate":
                 
-                Thruster_FR = 0.33      #Front Right
-                Thruster_FL = 0.33      #Front Left    
-                Thruster_BL = 0.66      #Back Left
-                Thruster_BR = 0.66      #Back Right
-                Thruster_VF = 0.0       #Vertical Front
-                Thruster_VB = 0.0       #Vertical Back    
+            #     Thruster_FR = 0.33      #Front Right
+            #     Thruster_FL = 0.33      #Front Left    
+            #     Thruster_BL = 0.66      #Back Left
+            #     Thruster_BR = 0.66      #Back Right
+            #     Thruster_VF = 0.0       #Vertical Front
+            #     Thruster_VB = 0.0       #Vertical Back    
 
-            else:
+            # else:
 
-                Thruster_FR = -fb - rl - yaw      #Front Right
-                Thruster_FL = -fb + rl + yaw      #Front Left    
-                Thruster_BL = -fb + rl - yaw      #Back Left
-                Thruster_BR = -fb - rl + yaw      #Back Right
-                Thruster_VF = -ud - pitch         #Vertical Front
-                Thruster_VB = -ud + pitch         #Vertical Back    
+            Thruster_FR = -fb - rl - yaw      #Front Right
+            Thruster_FL = -fb + rl + yaw      #Front Left    
+            Thruster_BL = -fb - rl - yaw      #Back Left
+            Thruster_BR = fb - rl + yaw      #Back Right
+            Thruster_VF = ud - pitch         #Vertical Front
+            Thruster_VB = -ud - pitch         #Vertical Back    
 
             outputs = [Thruster_FR, Thruster_FL, Thruster_BL, Thruster_BR, Thruster_VF, Thruster_VB]
             max_output = max(abs(output) for output in outputs)

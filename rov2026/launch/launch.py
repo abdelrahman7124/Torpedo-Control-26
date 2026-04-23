@@ -53,10 +53,15 @@ def generate_launch_description():
             executable='esp_commands_control',
             name='esp_commands_control_node',
         ),
+        # Node(
+        #     package='rov2026',
+        #     executable='factors_gui',
+        #     name='factors_gui_node',
+        # ),
         Node(
             package='rov2026',
-            executable='factors_gui',
-            name='factors_gui_node',
+            executable='thrusters_factors',
+            name='thrusters_factors_node',
         ),
         # Node(
         #     package='rov2026',

@@ -38,6 +38,7 @@ setup(
             'esp_commands_control = rov2026.esp_commands_control:main',
             'factors_gui = rov2026.factors_gui:main',
             'pid_tuner_node = rov2026.pid_tuner:main',
+            
 
         ],
     },

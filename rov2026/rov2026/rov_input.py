@@ -29,7 +29,7 @@ class ROVInput(Node):
         self.speed_mode = "discrete"
         self.speed_levels = [0.33, 0.66, 1]
         self.speed_tags = ["LOW", "MEDIUM", "HIGH"]
-        self.speed_index = 0    # 0: Low, 1: Medium, 2: High
+        self.speed_index = 1    # 0: Low, 1: Medium, 2: High
 
         self.prev_buttons = []
 
@@ -44,7 +44,7 @@ class ROVInput(Node):
         self.joy_pub = self.create_publisher(String, 'joy_processed', 10)
         self.speed_pub = self.create_publisher(Float32, 'speed_factor', 10)
         self.speed_level_pub = self.create_publisher(String, 'speed_level', 10)
-        self.move_mode_pub = self.create_publisher(String, 'move_mode', 10)
+        # self.move_mode_pub = self.create_publisher(String, 'move_mode', 10)
         self.pid_enable_pub = self.create_publisher(Bool, 'pid_enable', 10)
 
         self.get_logger().info("✅ ROVInput node started")
@@ -70,41 +70,41 @@ class ROVInput(Node):
 
         speed_factor = 1
 
-        if self.is_btn_pressed(buttons, self.BTN_TOGGLE_MODE):
-            if self.speed_mode == 'continuous':
-                self.speed_mode = 'discrete'
+        # if self.is_btn_pressed(buttons, self.BTN_TOGGLE_MODE):
+        #     if self.speed_mode == 'continuous':
+        #         self.speed_mode = 'discrete'
 
-            elif self.speed_mode == 'discrete':
-                self.speed_mode = 'continuous'
-                speed = String()
-                speed.data = "HIGH"
-                self.speed_level_pub.publish(speed)
+        #     elif self.speed_mode == 'discrete':
+        #         self.speed_mode = 'continuous'
+        #         speed = String()
+        #         speed.data = "HIGH"
+        #         self.speed_level_pub.publish(speed)
 
-            self.get_logger().info(f"Speed Mode: {self.speed_mode}")
+        #     self.get_logger().info(f"Speed Mode: {self.speed_mode}")
 
-        if self.speed_mode == 'discrete':
-            # if self.is_btn_pressed(buttons, self.BTN_LOW_SPEED) and :
-            #     self.speed_index = 0
-            #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
-            # elif self.is_btn_pressed(buttons, self.BTN_MED_SPEED):
-            #     self.speed_index = 1
-            #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
-            # elif self.is_btn_pressed(buttons, self.BTN_HIGH_SPEED):
-            #     self.speed_index = 2
-            #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
-            if self.is_btn_pressed(buttons, self.BTN_TOGGLE_SPEED):
-                self.speed_index = (self.speed_index + 1) % len(self.speed_levels)
-                self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
+        # if self.speed_mode == 'discrete':
+        #     # if self.is_btn_pressed(buttons, self.BTN_LOW_SPEED) and :
+        #     #     self.speed_index = 0
+        #     #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
+        #     # elif self.is_btn_pressed(buttons, self.BTN_MED_SPEED):
+        #     #     self.speed_index = 1
+        #     #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
+        #     # elif self.is_btn_pressed(buttons, self.BTN_HIGH_SPEED):
+        #     #     self.speed_index = 2
+        #     #     self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
+        #     if self.is_btn_pressed(buttons, self.BTN_TOGGLE_SPEED):
+        #         self.speed_index = (self.speed_index + 1) % len(self.speed_levels)
+        #         self.get_logger().info(f"Current Speed Level: {self.speed_tags[self.speed_index]}")
 
-                speed = String()
-                speed.data = self.speed_tags[self.speed_index]
-                self.speed_level_pub.publish(speed)
+        #         speed = String()
+        #         speed.data = self.speed_tags[self.speed_index]
+        #         self.speed_level_pub.publish(speed)
 
-                speed_factor = self.speed_levels[self.speed_index]
+        #         speed_factor = self.speed_levels[self.speed_index]
             
-                msg = Float32()
-                msg.data = float(speed_factor)
-                self.speed_pub.publish(msg)
+        #         msg = Float32()
+        #         msg.data = float(speed_factor)
+        #         self.speed_pub.publish(msg)
 
 
     def set_speed(self, value):
