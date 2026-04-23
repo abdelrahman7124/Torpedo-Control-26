@@ -10,6 +10,7 @@ IMU imu;
 KALMAN kalman_filter_yaw;
 KALMAN kalman_filter_pitch;
 KALMAN kalman_filter_roll;
+KALMAN kalman_filter_depth;
 
 DRIFTNEGATION drift_negation_yaw;
 DRIFTNEGATION drift_negation_pitch;
@@ -28,12 +29,14 @@ unsigned long imuTimer = 0;        // Fix: removed static
 ROVCommand cmd;
 
 void setup() {
+    Serial.begin(9600);
+    Wire.begin(IMU_SDA, IMU_SCL);
     bmp.init();
     imu.initialize_connection();
-    setupThrusters();
-    setupGripper();
+    // setupThrusters();
+    // setupGripper();
     delay(1000);
-    ethernet_setup(IPAddress(192,168,1,44), IPAddress(192,168,1,2), 9000, 5);
+    // ethernet_setup(IPAddress(192,168,1,44), IPAddress(192,168,1,2), 9000, 5);
     
     kalman_filter_pitch.set_R(0.2);
     kalman_filter_roll.set_R(0.2);
@@ -44,13 +47,16 @@ void setup() {
 void loop() {
     if (millis() - imuTimer >= 10) {
         imu.update();
+        Serial.print(yaw);
+        Serial.print("  |  ");
         roll = drift_negation_roll.filter(imu.getRoll());
         roll = kalman_filter_roll.filter(roll);
         pitch = drift_negation_pitch.filter(imu.getPitch());
         pitch = kalman_filter_pitch.filter(pitch);
         yaw = drift_negation_yaw.filter(imu.getYaw());
         yaw = kalman_filter_yaw.filter(yaw);
-        depth = bmp.readDepth();
+        depth = kalman_filter_depth.filter(bmp.readDepth());
+        Serial.println(depth);
         imuTimer = millis();
     }
 
@@ -76,8 +82,6 @@ void loop() {
             lastRcvdTime = millis();
         }
     }
-
-    Serial.print(bmp.getTime());
     Serial.print(" Pressure: ");
     Serial.print(bmp.readPressure());
     Serial.print(" Pa | Depth: ");

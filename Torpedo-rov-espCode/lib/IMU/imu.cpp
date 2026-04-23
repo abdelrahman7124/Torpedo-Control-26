@@ -3,13 +3,14 @@
 IMU::IMU()
 {
     this->device_address = IMU_DEFAULT_ADDRESS;
-    this->I2C_IMU.begin(IMU_SDA,IMU_SCL);
+    // this->I2C_IMU.begin(IMU_SDA,IMU_SCL);
 
 }
 
 void IMU::initialize_connection()
 {
-    this->check = mpu.begin(this->device_address, &(this->I2C_IMU)) ;
+    this->check = mpu.begin(this->device_address);
+    // this->check = mpu.begin(this->device_address, &(this->I2C_IMU)) ;
     if (!this->check) 
     {
         LOG_ERROR("%s", "Failed to find IMU sensor!");

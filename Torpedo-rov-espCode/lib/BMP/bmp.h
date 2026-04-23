@@ -21,23 +21,13 @@ Description: Handles interfaceing and reterival of data from the BMP180 pressure
             KALMAN  filter;
             float pressure;
             float depth;
-            int time_sec;
-            int time_min;
-            int time_hr;
-            unsigned long bmp_time;
-            String time_sec_msg;
-            String time_min_msg;
-            String time_hr_msg;
-            String time_stamp;
             TwoWire I2C_BMP = TwoWire(1);
 
-        
         public:
             BMP();
             void init();
             float readPressure();
             float readDepth();
-            String getTime();
     };
 
 #endif
