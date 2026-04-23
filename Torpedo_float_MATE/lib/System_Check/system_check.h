@@ -11,6 +11,7 @@ Description: Checks all sencors,acutators and communications of the system to en
     #include <Arduino.h>
     #include "control.h"
     #include "bmp.h"
+    #include "rtc.h"
     #include "wireless.h"
     
     class SystemCheck
@@ -19,6 +20,7 @@ Description: Checks all sencors,acutators and communications of the system to en
         BMP bmp;
         Control control;
         wireless connection;
+        RTC rtc;
 
         ControlState motor_state;
         bool direction_flag;

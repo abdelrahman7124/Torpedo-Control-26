@@ -10,11 +10,11 @@ void setup()
     action.control.bmp.init();
     sampling_current_time = 0;
     sampling_prev_time = 0;
-    first_dive_flag = false;
+    first_dive_flag = true;
     first_stop_flag = false;
-    second_stop_flag = false;
-    second_dive_flag = false;
-    rise_flag = false;
+    second_stop_flag = true;
+    second_dive_flag = true;
+    rise_flag = true;
     begin_flag = true;
     mission_start_flag = false;
     system_mode = SYSTEM_MODE;
@@ -49,23 +49,19 @@ void loop()
     {
         if(mission_start_flag)
         {
+            sample_readings();
             mission_state = execute_mission();
             if (mission_state == MISSION_COMPLETE)
             {
                 connection.connect_init();
                 send_msg();
+                
+                if(RESET_FLAG)
+                {
+                    ESP.reset();
+                }
             }
 
-            if((mission_state == RESET) && (RESET_FLAG))
-            {
-                first_dive_flag = false;
-                first_stop_flag = false;
-                second_stop_flag = false;
-                second_dive_flag = false;
-                rise_flag = false;
-                mission_start_flag = false; 
-                begin_flag = true;
-            }
         }
     }
     
@@ -92,8 +88,13 @@ void send_msg()
 
         msg = time_stamp + "," + String(depth) + "," + String(pressure);
         
-        connection.send_data(msg);
-        pressure_log.pop();
+
+        packet_state = connection.send_data(msg);
+        
+        if(packet_state == SENT)
+        {
+            pressure_log.pop();
+        }
     }
 
     connection.close();
@@ -102,8 +103,9 @@ void send_msg()
 
 void sample_readings()
 {
-    sampling_current_time = millis();
-    if((sampling_current_time - sampling_prev_time) >= SAMPLE_DURATION)
+    rtc.get_timeStamp();
+    sampling_current_time = rtc.getSeconds();
+    if(sampling_current_time != sampling_prev_time)
     {
         get_bmp_readings();
         sampling_prev_time = sampling_current_time;
@@ -115,8 +117,6 @@ MovementState execute_mission()
 {
     if(!first_dive_flag)
     {
-        sample_readings();
-
         if(action.dive(FIRST_DEPTH) == IDLE )
         {
             first_dive_flag = true;
@@ -127,22 +127,18 @@ MovementState execute_mission()
     }
 
     else if(!first_stop_flag)
-    {
-        sample_readings();
-        
+    {        
         if(action.hold(FIRST_STOP_DURATION) == IDLE)
         {
             first_stop_flag = true;
-            return FIRST_STOP_COMPLETE;
+            return MISSION_COMPLETE;
         }
 
         return HOVERING;
     }
 
     else if(!second_dive_flag)
-    {
-        sample_readings();
-        
+    {        
         if(action.dive(SECOND_DEPTH) == IDLE)
         {
             second_dive_flag = true;
@@ -153,9 +149,7 @@ MovementState execute_mission()
     }
 
     else if(!second_stop_flag)
-    {
-        sample_readings();
-        
+    {        
         if(action.hold(SECOND_STOP_DURATION) == IDLE)
         {
             second_stop_flag = true;
@@ -166,8 +160,6 @@ MovementState execute_mission()
 
     else if(!rise_flag)
     {
-        sample_readings();
-
         if(action.rise_to_surface() == IDLE)
         {
             rise_flag = true;

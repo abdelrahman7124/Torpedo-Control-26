@@ -14,7 +14,7 @@ void SystemCheck::checkSensors()
     bmp.init();
     this->pressure = bmp.readPressure();
     this->depth = bmp.readDepth();
-    this->time_stamp = bmp.getTime();
+    this->time_stamp = rtc.get_timeStamp();
     LOG_INFO("Sensor Check: Pressure = %.2f Pa, Depth = %.2f m, Time = %s", this->pressure, this->depth, this->time_stamp.c_str());
 }
 

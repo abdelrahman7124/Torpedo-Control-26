@@ -13,6 +13,12 @@ Description: Handles wireless communication for ESP8266 and send data by using t
 
 #include "wireless_config.h"
 
+enum PacketState
+{
+    SENT = 0,
+    LOST = 1,
+};
+
 class wireless
 {
     private:
@@ -41,7 +47,7 @@ class wireless
         const IPAddress get_serverIP() const;
         int get_port() const;
         void connect_init();
-        void send_data(const String msg);
+        PacketState send_data(const String msg);
         wl_status_t check_connection() const;
         String receive_data();
         void close();

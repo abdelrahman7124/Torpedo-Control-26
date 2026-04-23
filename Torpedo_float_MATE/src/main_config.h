@@ -3,9 +3,9 @@
     
     #define FIRST_DEPTH 0.5
     #define SECOND_DEPTH 0.2
-    #define FIRST_STOP_DURATION 30
+    #define FIRST_STOP_DURATION 10
     #define SECOND_STOP_DURATION 30
-    #define SAMPLE_DURATION 1
+    #define SAMPLE_DURATION 2
 
     #define EEPROM_RESERVED_SPACE 512
 

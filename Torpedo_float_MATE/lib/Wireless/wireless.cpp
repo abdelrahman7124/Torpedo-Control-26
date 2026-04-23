@@ -100,22 +100,27 @@ void wireless::update()
 
 void wireless::connect_init()
 {
+    WiFi.softAPdisconnect(true);
+    delay(100);
     WiFi.mode(WIFI_AP);
     WiFi.softAP(this->ssid, this->password);
+    delay(100);
     server = WiFiServer(this->port); 
     server.begin();
 }
 
-void wireless::send_data(const String msg)
+PacketState wireless::send_data(const String msg)
 {
     update();
     if (client && client.connected())
     {
         client.println(msg);
+        return SENT;
     }
     else
     {
         LOG_ERROR("%s", "No client connected! Cannot send data.");
+        return LOST;
     }
 }
 
