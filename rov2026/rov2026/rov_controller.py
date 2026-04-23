@@ -162,7 +162,6 @@ class ROVController(Node):
 
     #     return ud, pitch
 
-    # ✅ Fix — also catch near-simultaneous starts
     SIMULTANEOUS_WINDOW = 0.1  # seconds
 
     def sequence_and_publish(self, fb, rl, ud, yaw, pitch):
@@ -323,11 +322,9 @@ class ROVController(Node):
 
             if self.pid_enabled:
                 yaw_cmd = self.compute_yaw(yaw_active)
-                #ud_cmd = self.compute_depth(ud_active)
-                #pitch_cmd = self.compute_pitch(pitch_active)
-                ud_cmd = self.joy_ud
-                pitch_cmd = self.joy_pitch
-
+                ud_cmd = self.compute_depth(ud_active)
+                pitch_cmd = self.compute_pitch(pitch_active)
+                
             else:
                 yaw_cmd = self.joy_yaw
                 ud_cmd = self.joy_ud
