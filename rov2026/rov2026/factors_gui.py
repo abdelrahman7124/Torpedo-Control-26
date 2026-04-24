@@ -508,7 +508,7 @@ class FactorsWidget(QWidget):
         self.factors = default_factors()
         self.sliders = {}
         self.labels = {}
-        self.current_level = 'LOW'
+        self.current_level = 'MEDIUM'
 
         os.makedirs(FACTORS_DIR, exist_ok=True)
         self.load_factors()
