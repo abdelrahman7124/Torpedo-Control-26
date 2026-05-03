@@ -44,7 +44,6 @@ class ROVInput(Node):
         self.joy_pub = self.create_publisher(String, 'joy_processed', 10)
         self.speed_pub = self.create_publisher(Float32, 'speed_factor', 10)
         self.speed_level_pub = self.create_publisher(String, 'speed_level', 10)
-        # self.move_mode_pub = self.create_publisher(String, 'move_mode', 10)
         self.pid_enable_pub = self.create_publisher(Bool, 'pid_enable', 10)
 
         self.get_logger().info("✅ ROVInput node started")
@@ -168,16 +167,6 @@ class ROVInput(Node):
                 'is_active': is_active
             }
             self.joy_pub.publish(String(data=json.dumps(output)))
-
-
-            if self.is_btn_pressed(buttons, self.BTN_ROTATE):
-                if self.move_mode == "rotate":
-                    self.move_mode = "normal"
-                else:
-                    self.move_mode = "rotate"
-                self.get_logger().info(f"Move Mode: {self.move_mode}")
-            
-                self.move_mode_pub.publish(String(data=self.move_mode))   
 
             self.prev_buttons = buttons  
             

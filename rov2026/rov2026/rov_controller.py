@@ -9,9 +9,9 @@ class ROVController(Node):
     def __init__(self):
         super().__init__('controller')
 
-        self.yaw_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True)
-        self.depth_pid = PID(kp=1.0, ki=0.02, kd=0.1, is_angular=False)
-        self.pitch_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True)
+        self.yaw_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True, d_filter_alpha=0.8, antiwindup=True)
+        self.depth_pid = PID(kp=1.0, ki=0.02, kd=0.1, is_angular=False, d_filter_alpha=0.8, antiwindup=True)
+        self.pitch_pid = PID(kp=0.5, ki=0.01, kd=0.1, is_angular=True, d_filter_alpha=0.8, antiwindup=True)
 
         self.initialized = False
 
@@ -34,19 +34,17 @@ class ROVController(Node):
         self.target_depth = 0.0
         self.target_pitch = 0.0
 
-        self.YAW_RATE = 2.0
-        self.DEPTH_RATE = 0.02
-
-        self.speed_factor = 1.0
+        self.speed_factor = 1
 
         self.pid_enabled = False
-        self.pid_changed = False
 
         self.STARTUP_DELAY = 0.2
         
         self.prev_horizontal_idle = True
         self.prev_vertical_idle = True
         self.vertical_hold_until = None
+
+        self.last_pid_time = None
 
         self.create_subscription(String, 'joy_processed', self.joy_callback, 10)
         self.create_subscription(String, 'rov_telemetry', self.telemetry_callback, 10)
@@ -130,38 +128,6 @@ class ROVController(Node):
         self.gains_pub.publish(String(data=json.dumps(gains)))
 
 
-    # def sequence_and_publish(self, fb, rl, ud, yaw, pitch):
-    #     now = self.get_clock().now()
-    #     horizontal_idle = not (abs(self.joy_fb) or abs(self.joy_rl) or abs(self.joy_yaw))
-    #     vertical_idle = not (abs(self.joy_ud) or abs(self.joy_pitch))
-
-    #     horizontal_starting = self.prev_horizontal_idle and not horizontal_idle
-    #     vertical_starting = self.prev_vertical_idle and not vertical_idle
-
-    #     if horizontal_starting and vertical_starting:
-    #         self.vertical_hold_until = now + rclpy.duration.Duration(seconds=self.STARTUP_DELAY)
-
-    #     self.prev_horizontal_idle = horizontal_idle
-    #     self.prev_vertical_idle = vertical_idle
-
-    #     if self.vertical_hold_until is not None:
-    #         if now < self.vertical_hold_until:
-    #             ud = 0.0
-    #             pitch = 0.0
-    #         else:
-    #             self.vertical_hold_until = None
-        
-    #     cmd = {
-    #         'fb': fb,
-    #         'rl': rl,
-    #         'ud': ud,
-    #         'yaw': yaw,
-    #         'pitch': pitch
-    #     }
-    #     self.cmd_pub.publish(String(data=json.dumps(cmd)))
-
-    #     return ud, pitch
-
     SIMULTANEOUS_WINDOW = 0.1  # seconds
 
     def sequence_and_publish(self, fb, rl, ud, yaw, pitch):
@@ -205,8 +171,8 @@ class ROVController(Node):
 
     def pid_enable_callback(self, msg):
         self.pid_enabled = msg.data
-        self.pid_changed = True
         self.initialized = False
+        self.last_pid_time = None
 
         if self.pid_enabled:
             self.get_logger().info("🟢 PID enabled — waiting for telemetry to initialize")
@@ -233,9 +199,7 @@ class ROVController(Node):
             pass
 
     def check_telemetry_timeout(self):
-        # if self.last_telemetry_time is None:
-        #     return
-
+    
         elapsed = (self.get_clock().now() - self.last_telemetry_time).nanoseconds / 1e9
         if elapsed > self.telemetry_timeout:
             if not self.telemetry_timed_out:
@@ -246,27 +210,25 @@ class ROVController(Node):
                 self.prev_horizontal_idle = True
                 self.prev_vertical_idle = True
                 self.vertical_hold_until = None
+                self.last_pid_time = None
 
             self.sequence_and_publish(
                 self.joy_fb, self.joy_rl, self.joy_ud,
                 self.joy_yaw, self.joy_pitch
             )
 
-            # cmd = {
-            #     'fb': self.joy_fb,
-            #     'rl': self.joy_rl,
-            #     'ud': self.joy_ud,
-            #     'yaw': self.joy_yaw,
-            #     'pitch': self.joy_pitch
-            # }
-
-            # self.cmd_pub.publish(String(data=json.dumps(cmd)))
         else:
             self.telemetry_timed_out = False
 
     def telemetry_callback(self, msg):
 
         self.last_telemetry_time = self.get_clock().now()
+        now = self.get_clock().now()
+        if self.last_pid_time is None:
+            dt = 0.0
+        else:
+            dt = (now - self.last_pid_time).nanoseconds / 1e9
+        self.last_pid_time = now
 
         try:
             data = json.loads(msg.data)
@@ -321,11 +283,9 @@ class ROVController(Node):
             rl_cmd = self.joy_rl
 
             if self.pid_enabled:
-                yaw_cmd = self.compute_yaw(yaw_active)
-                #ud_cmd = self.compute_depth(ud_active)
-                #pitch_cmd = self.compute_pitch(pitch_active)
-                ud_cmd = self.joy_ud
-                pitch_cmd = self.joy_pitch
+                yaw_cmd = self.compute_yaw(yaw_active, dt)
+                ud_cmd = self.compute_depth(ud_active, dt)
+                pitch_cmd = self.compute_pitch(pitch_active, dt)
                 
             else:
                 yaw_cmd = self.joy_yaw
@@ -345,21 +305,10 @@ class ROVController(Node):
                 self.prev_ud_active = False
                 self.prev_pitch_active = False
 
-            # cmd = {
-            #     'fb': fb_cmd,
-            #     'rl': rl_cmd,
-            #     'ud': ud_cmd,
-            #     'yaw': yaw_cmd,
-            #     'pitch': pitch_cmd
-            # }
-
-            
-            # self.cmd_pub.publish(String(data=json.dumps(cmd)))
-
         except json.JSONDecodeError:
             pass
 
-    def compute_yaw(self, active):
+    def compute_yaw(self, active, dt):
         
 
         if active:
@@ -370,30 +319,28 @@ class ROVController(Node):
             self.target_yaw = self.current_yaw
             self.yaw_pid.set_setpoint(self.target_yaw)
             self.yaw_pid.reset()
-            output = self.yaw_pid.compute(self.current_yaw)
+            output = self.yaw_pid.compute(self.current_yaw, dt)
 
         else:
-            output = self.yaw_pid.compute(self.current_yaw)
+            output = self.yaw_pid.compute(self.current_yaw, dt)
 
         return float(output)
     
-    def compute_depth(self, active):
+    def compute_depth(self, active, dt):
         if active:
-            # self.target_depth += self.joy_ud * self.DEPTH_RATE
-            # self.depth_pid.set_setpoint(self.target_depth)
             output = self.joy_ud
         
         elif not active and self.prev_ud_active:
             self.target_depth = self.current_depth
             self.depth_pid.set_setpoint(self.target_depth)
             self.depth_pid.reset()
-            output = self.depth_pid.compute(self.current_depth)
+            output = self.depth_pid.compute(self.current_depth, dt)
         else:
-            output = self.depth_pid.compute(self.current_depth)
+            output = self.depth_pid.compute(self.current_depth, dt)
 
         return float(output)
     
-    def compute_pitch(self, active):
+    def compute_pitch(self, active, dt):
         if active:
             output = self.joy_pitch
         
@@ -401,9 +348,9 @@ class ROVController(Node):
             self.target_pitch = self.current_pitch
             self.pitch_pid.set_setpoint(self.target_pitch)
             self.pitch_pid.reset()
-            output = self.pitch_pid.compute(self.current_pitch)
+            output = self.pitch_pid.compute(self.current_pitch, dt)
         else:
-            output = self.pitch_pid.compute(self.current_pitch)
+            output = self.pitch_pid.compute(self.current_pitch, dt)
 
         return float(output)
     

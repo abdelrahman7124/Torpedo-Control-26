@@ -19,9 +19,13 @@ class RosToEsp(Node):
 
     def command_callback(self, msg):
         self.current_cmd = msg.data
+        self.last_cmd_time = self.get_clock().now()
 
     def send_udp_packet(self):
         try:
+            elapsed = (self.get_clock().now() - self.last_cmd_time).nanoseconds / 1e9
+            if elapsed > 0.5:
+                self.current_cmd = "1500,1500,1500,1500,1500,1500,90,0"  # neutral
             self.sock.sendto(self.current_cmd.encode(), self.esp_addr)
         except Exception as e:
             self.get_logger().error(f"UDP Error: {e}")
