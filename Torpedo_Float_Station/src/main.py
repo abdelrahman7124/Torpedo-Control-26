@@ -4,6 +4,7 @@ from lib.plot import plot
 import time
 
 depth_axis = []
+time_axis = []
 
 def main():
     wifi = reciever.WifiReciever()
@@ -37,12 +38,15 @@ def main():
                 parts = line.strip().split(",")
                 if len(parts) >= constants.PACKET_SIZE:
                     try:
-                        depth = float(parts[constants.DATA_INDEX])
+                        depth = float(parts[constants.DEPTH_INDEX])
+                        time_val = parts[constants.TIME_INDEX]
+
                         depth_axis.append(depth)
+                        time_axis.append(time_val)
+                    
                     except ValueError:
                         pass
-    print(depth_axis)
-    plotting.plot(depth_axis)
+    plotting.plot(depth_axis, time_axis)
 
 if __name__ == "__main__":
     main()

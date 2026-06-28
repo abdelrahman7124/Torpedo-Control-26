@@ -11,7 +11,7 @@ class WifiReciever():
         self.ESP_IP = constants.DEFAULT_ESP_IP
         self.port = constants.DEFAULT_PORT
         self.timeout_count = 0        
-        self.msg = "Begin"
+        self.msg = constants.MODE
     
     def get_ssid(self):
         try:

@@ -1,6 +1,10 @@
 #ifndef THRUSTERS_H
 #define THRUSTERS_H
-const int NUM_THRUSTERS = 6;    
+const int NUM_THRUSTERS = 12;    
+
+#include "imu.h"
+
+extern IMU imu;
 
 struct ROVCommand {
     int thrusterVals[NUM_THRUSTERS];
