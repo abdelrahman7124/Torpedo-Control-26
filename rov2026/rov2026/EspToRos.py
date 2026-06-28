@@ -15,6 +15,7 @@ class EspToRos(Node):
         self.sock.bind((LISTEN_IP, LISTEN_PORT))
         self.sock.setblocking(False) 
         self.telemetry = self.create_publisher(String, 'rov_telemetry', 10)
+        self.pid_val = self.create_publisher(String, "pid_val", 10)
         self.timer = self.create_timer(0.01, self.check_udp_socket)
         self.get_logger().info(f"Receiver Started. Listening on Port {LISTEN_PORT}")
 
@@ -30,11 +31,26 @@ class EspToRos(Node):
                         "roll": float(values[0]),
                         "pitch": float(values[1]),
                         "yaw": float(values[2]),
-                        "depth": float(values[3])
+                        "depth": float(values[3]),
+                        
                     }
+
+                    pid_dict = {
+                        "Kp"   : float(values[4]),
+                        "Ki"   : float(values[5]),
+                        "Kd"   : float(values[6]),
+                    }
+
                     msg = String()
                     msg.data = json.dumps(telemetry_dict)
                     self.telemetry.publish(msg)
+
+
+
+                    pid_msg = String()
+                    pid_msg.data = json.dump(pid_dict)
+                    self.pid_val.publish(pid_msg)
+
 
                 except (ValueError, IndexError) as parse_error:
                     self.get_logger().warn(f"Failed to parse data '{raw_text}': {parse_error}")

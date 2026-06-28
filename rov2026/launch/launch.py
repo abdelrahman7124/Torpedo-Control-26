@@ -34,16 +34,6 @@ def generate_launch_description():
             name='ros_to_esp_node',
         ),
         Node(
-            package='rov2026',
-            executable='esp_to_ros',
-            name='esp_to_ros_node',
-        ),
-        # Node(
-        #     package='rov2026',
-        #     executable='thrusters_factors',
-        #     name='thrusters_factors_node',
-        # ),
-        Node(
            package='rov2026',
            executable='gripper_controller',
            name='gripper_controller',
@@ -53,19 +43,19 @@ def generate_launch_description():
             executable='esp_commands_control',
             name='esp_commands_control_node',
         ),
-        # Node(
-        #     package='rov2026',
-        #     executable='factors_gui',
-        #     name='factors_gui_node',
-        # ),
-        # Node(
-        #     package='rov2026',
-        #     executable='thrusters_factors',
-        #     name='thrusters_factors_node',
-        # ),
-        # Node(
-        #     package='rov2026',
-        #     executable='pid_tuner_node',
-        #     name='pid_tuner',
-        # )
+        Node(
+            package='rov2026',
+            executable='esp_to_ros',
+            name='EspToRos',
+        ),
+        Node(
+            package='rov2026',
+            executable='pid_handler',
+            name='pid_handler',
+        ),
+        Node(
+            package='rov2026',
+            executable='rov_flags',
+            name='flags',
+        ),
     ])
