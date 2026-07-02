@@ -5,14 +5,14 @@ unsigned long prev_adapt_time = 0;
 
 PID::PID()
 {
-    if(SYSTEM_MODE == CALIBRATION_MODE)
-    { 
-        EEPROM.get(KP_STORE_ADDRESS, this->kp);
-        EEPROM.get(KI_STORE_ADDRESS, this->ki);
-        EEPROM.get(KD_STORE_ADDRESS, this->kd);
-    }
+    // if(SYSTEM_MODE == CALIBRATION_MODE)
+    // { 
+    //     EEPROM.get(KP_STORE_ADDRESS, this->kp);
+    //     EEPROM.get(KI_STORE_ADDRESS, this->ki);
+    //     EEPROM.get(KD_STORE_ADDRESS, this->kd);
+    // }
     
-    else
+    // else
     {
         this->kp = KP_INITIAL;
         this->kd = KD_INITIAL;
@@ -152,7 +152,7 @@ double PID::run()
     output = PID::clamp(output,MIN_OUTPUT_THRESHOLD,MAX_OUTPUT_THRESHOLD);
     //if(millis() - prev_adapt_time > 1000)
     //{
-        PID::adapt();
+        // PID::adapt();
     //    prev_adapt_time = millis();
     //}
     return output;

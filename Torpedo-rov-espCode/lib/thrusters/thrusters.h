@@ -1,6 +1,7 @@
 #ifndef THRUSTERS_H
 #define THRUSTERS_H
-const int NUM_THRUSTERS = 12;    
+const int NUM_THRUSTERS = 6;  
+const int NUM_DIRECTIONS = 6;
 
 #include "imu.h"
 
@@ -8,6 +9,7 @@ extern IMU imu;
 
 struct ROVCommand {
     int thrusterVals[NUM_THRUSTERS];
+    float directionVals[NUM_DIRECTIONS];
     int gripperAngle;
     int gripperOpen;
 };

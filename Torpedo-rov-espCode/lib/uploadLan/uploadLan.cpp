@@ -86,7 +86,9 @@ void handleOTA(EthernetClient& client, String header) {
     if (Update.end()) {
       Serial.println("Firmware Verified. Rebooting!");
       client.println("HTTP/1.1 200 OK\n\nUpdate Success!");
-      delay(500);
+      client.flush();
+      client.stop();
+      delay(1000);
       ESP.restart();
     } else {
       Serial.printf("Flash Error: %s\n", Update.errorString());
