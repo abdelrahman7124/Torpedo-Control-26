@@ -1,21 +1,24 @@
-import re
+import socket
 
-# Load your decoded binary data
-with open("data.bin", "rb") as f:
-    data = f.read()
+# --- Configuration ---
+UDP_IP = "0.0.0.0" 
+UDP_PORT = 8888    # Make sure this matches your ESP32 port
 
-# Find all occurrences of the "OCTM" header
-# Note: This is a basic split. The actual exocad format prefixes the CTM data 
-# with the byte length of the CTM block, which is a safer way to parse it.
-chunks = data.split(b'OCTM')
+# Create and bind the UDP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
 
-# Skip the first chunk (it's the data before the first 3D model)
-for i in range(1, len(chunks)):
-    # Re-add the OCTM header that was removed by the split
-    ctm_data = b'OCTM' + chunks[i]
-    
-    # Save each 3D model as a .ctm file
-    with open(f"extracted_model_{i}.ctm", "wb") as out_file:
-        out_file.write(ctm_data)
+print(f"Listening for raw UDP data on port {UDP_PORT}...\n")
+
+try:
+    while True:
+        # Receive data
+        data, addr = sock.recvfrom(1024)
         
-print(f"Extracted {len(chunks)-1} CTM files.")
+        # Just print the raw data and where it came from
+        print(f"From {addr[0]}: {data}")
+
+except KeyboardInterrupt:
+    print("\nStopped.")
+finally:
+    sock.close()
