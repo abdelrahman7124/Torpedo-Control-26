@@ -8,7 +8,7 @@
 #include "pid.h"
 #include "imu.h"
 #include "ethernet.h"
-
+#include "uploadLan.h"
 
 PID pid;
 bool pid_start_flag = false;
@@ -229,9 +229,14 @@ void drive(ROVCommand cmd)
         };
 
         sendDataArrayFloat(dataArray, 7);
-
+        sendValues(pid.get_kp(), pid.get_ki(), pid.get_kd());
         previousMillis = millis();
     }
 
     delay(100);
+}
+void setValues(float kp, float ki, float kd) {
+    pid.set_kp(kp);
+    pid.set_ki(ki);
+    pid.set_kd(kd);
 }

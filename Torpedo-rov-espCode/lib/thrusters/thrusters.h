@@ -19,4 +19,5 @@ void setupThrusters();
 void setupGripper();
 ROVCommand parseCommand(char* packetBuffer);
 void drive(ROVCommand cmd);
+void setValues(float kp, float ki, float kd);
 #endif
