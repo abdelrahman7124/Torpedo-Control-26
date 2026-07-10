@@ -62,11 +62,8 @@ void PID::set_goal(float parameter)
     this->sum = 0.00;
     this->prev_error = 0.00;
     this->goal = parameter;
-    this->mean_error = 0.0;
-    this->prev_mean_error = 0.0;
-    this->error_variance = 0.0;
-    this->overshoot_count = 0.0;
-    this->last_error = 0.0;
+    // Do NOT reset mean_error / error_variance / overshoot_count here —
+    // these reflect learned system dynamics, not something tied to the goal itself.
     LOG_INFO("%s", "Goal set");
 }
 
@@ -129,6 +126,7 @@ double PID::run()
 
     if(abs(this->error) <= GOAL_THRESHOLD)
     {
+        this->prev_error = this->error;
         return NORMALIZTION_PARAMETER;
     }
 
@@ -150,11 +148,11 @@ double PID::run()
     double output = (this->kp * error) + (this->ki * sum) + (this->kd * diff) + NORMALIZTION_PARAMETER;
     this->prev_error = this->error;
     output = PID::clamp(output,MIN_OUTPUT_THRESHOLD,MAX_OUTPUT_THRESHOLD);
-    //if(millis() - prev_adapt_time > 1000)
-    //{
-        // PID::adapt();
+    // if(millis() - prev_adapt_time > 1000)
+    // {
+    //     PID::adapt();
     //    prev_adapt_time = millis();
-    //}
+    // }
     return output;
 }
 
@@ -192,26 +190,26 @@ void PID::adapt()
 
     if(this->error_variance > VARIANCE_THRESHOLD)
     {
-        this->kp *= KP_STEP_DOWN;
-        this->kd *= KD_STEP_UP;
+        this->kp -= KP_STEP_DOWN;
+        this->kd += KD_STEP_UP;
     }
 
     else
     {
-        this->kp *= KP_STEP_UP;
-        this->kd *= KD_STEP_DOWN;
+        this->kp += KP_STEP_UP;
+        this->kd -= KD_STEP_DOWN;
     }
 
     if(this->overshoot_count > OVERSHOOT_THRESHOLD)
     {
-        this->kp *= KP_STEP_DOWN;
-        this->kd *= KD_STEP_UP;
-        this->overshoot_count *= OVERSHOOT_SMALL_RESET;
+        this->kp -= KP_STEP_DOWN;
+        this->kd += KD_STEP_UP;
+        this->overshoot_count = OVERSHOOT_SMALL_RESET;
     }
 
     else
     {
-        this->overshoot_count *= OVERSHOOT_LARGE_RESET;
+        this->overshoot_count = OVERSHOOT_LARGE_RESET;
     }
 
 

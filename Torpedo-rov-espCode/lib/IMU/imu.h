@@ -29,6 +29,8 @@ class IMU
         unsigned long now;
         unsigned long lastTime;
         bool check;
+        float gz_bias = 0.0;
+        void calibrateGyro(int numSamples = 200);
         // TwoWire I2C_IMU = TwoWire(0);
         
         void readAccelerometer();

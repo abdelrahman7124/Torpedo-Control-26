@@ -26,6 +26,7 @@ DRIFTNEGATION drift_negation_pitch;
 DRIFTNEGATION drift_negation_roll;
 
 float roll, pitch, yaw, depth;
+double pid_output;
 
 Servo thrusters[NUM_THRUSTERS];
 Servo gripperServo;
@@ -35,6 +36,9 @@ const int gripperServoPin = 17;
 const int gripperPin = 33;
 unsigned long prev_time = 0;
 unsigned long previousMillis = 0;
+
+
+int pid_on_off = 0;
 
 /*
 Thruster Pins:
@@ -58,8 +62,11 @@ void setupThrusters() {
         
     kalman_filter_pitch.set_R(0.2);
     kalman_filter_roll.set_R(0.2);
+    kalman_filter_yaw.set_R(0.2);
     drift_negation_pitch.set_threshold(0.2);
     drift_negation_roll.set_threshold(0.2);
+    // drift_negation_yaw.set_threshold(0.2);
+
 }
 
 void setupGripper() {
@@ -110,6 +117,10 @@ ROVCommand parseCommand(char* packetBuffer) {
         cmd.gripperOpen = atoi(token) == 1 ? 1 : 0;
         token = strtok(NULL, ",");
     }
+    if (token != NULL) {
+        pid_on_off = atoi(token);
+        token = strtok(NULL, ",");
+    }
 
     index = 0;
     while(token != NULL && index < NUM_DIRECTIONS){
@@ -138,24 +149,30 @@ ROVCommand parseCommand(char* packetBuffer) {
         // sendByUdp("---Flag is already false---");
 
         pid.set_dt((millis() - prev_time)/1000.0f);
+        yaw = drift_negation_yaw.filter(imu.getYaw());
+        yaw = kalman_filter_yaw.filter(yaw);
         pid.set_reading(yaw);
-        double pid_output = pid.run();
-
-        if(!pid_output)
+        pid_output = pid.run();
+        if (pid_on_off == 0)
         {
-            cmd.thrusterVals[0] = (1-alpha) * cmd.thrusterVals[0] - (alpha) * pid_output;
-            cmd.thrusterVals[3] = (1-alpha) * cmd.thrusterVals[3] - (alpha) * pid_output;
-            cmd.thrusterVals[1] = (1-alpha) * cmd.thrusterVals[1] + (alpha) * pid_output;
-            cmd.thrusterVals[2] = (1-alpha) * cmd.thrusterVals[2] + (alpha) * pid_output;
+            pid_output = 0;
         }
 
-        else
-        {
+        // if(!pid_output)
+        // {
+        //     cmd.thrusterVals[0] = (1-alpha) * cmd.thrusterVals[0] - (alpha) * pid_output;
+        //     cmd.thrusterVals[3] = (1-alpha) * cmd.thrusterVals[3] - (alpha) * pid_output;
+        //     cmd.thrusterVals[1] = (1-alpha) * cmd.thrusterVals[1] + (alpha) * pid_output;
+        //     cmd.thrusterVals[2] = (1-alpha) * cmd.thrusterVals[2] + (alpha) * pid_output;
+        // }
+
+        // else
+        // {
             cmd.thrusterVals[0] -= pid_output;
             cmd.thrusterVals[3] -= pid_output;
             cmd.thrusterVals[1] += pid_output;
             cmd.thrusterVals[2] += pid_output;
-        }
+    //     }
     }
     
     else
@@ -214,16 +231,22 @@ void drive(ROVCommand cmd)
     {
         float dataArray[7] =
         {
-            roll,
-            pitch,
+            // roll,
+            // pitch,
             yaw,
-            depth,
+        
+            // depth,
             // pid.get_kp(),
             // pid.get_ki(),
             // pid.get_kd(),
             (float)pid.get_goal(),
-            (float)(pid_start_flag?1.0:0.0),
-            (float)(cmd.directionVals[4] < 0.25 && cmd.directionVals[5] < 0.25),
+            // (float)(pid_start_flag?1.0:0.0),
+            // (float)(cmd.directionVals[4] < 0.25 && cmd.directionVals[5] < 0.25),
+            (float)pid_output,
+            (float)cmd.thrusterVals[0],
+            (float)cmd.thrusterVals[1],
+            (float)cmd.thrusterVals[2],
+            (float)cmd.thrusterVals[3],
 
 
         };

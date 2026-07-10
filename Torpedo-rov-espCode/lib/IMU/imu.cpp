@@ -39,11 +39,24 @@ void IMU::readAccelerometer()
     this->az = a.acceleration.z;
 }
 
+void IMU::calibrateGyro(int numSamples)
+{
+    float sum = 0.0;
+    for (int i = 0; i < numSamples; i++)
+    {
+        this->mpu.getEvent(&a, &g, &temp);
+        sum += g.gyro.z * (180 / PI);
+        delay(5);
+    }
+    this->gz_bias = sum / numSamples;
+    LOG_INFO("Gyro Z bias calibrated: %.5f", this->gz_bias);
+}
+
 void IMU::readGyroscope()
 {
     this->gx = g.gyro.x * (180/PI);
     this->gy = g.gyro.y * (180/PI);
-    this->gz = g.gyro.z * (180/PI);
+    this->gz = g.gyro.z * (180/PI) - this->gz_bias;
 }
 
 void IMU::update()
