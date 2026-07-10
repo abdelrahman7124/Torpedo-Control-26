@@ -29,6 +29,7 @@ class EspCommandsControl(Node):
     def publish_combined(self):
         
         thrusters = self.thruster_pwm
+    
 
         gripper = self.gripper_data
 

@@ -120,7 +120,8 @@ class ROVInput(Node):
             down = self.map_range(axes[self.AXIS_DOWN], 1, -1, 0, -1)
 
             fb_raw = axes[self.AXIS_FB]
-            rl_raw = axes[self.AXIS_RL]
+            #rl_raw = axes[self.AXIS_RL] 
+            rl_raw = 0
             # ud_raw = axes[self.AXIS_UD]
             ud_raw = up if up > 0 else down if down < 0 else 0
             yaw_raw = axes[self.AXIS_YAW]

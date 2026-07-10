@@ -31,6 +31,7 @@ Description: Handles PID controller logic and decision making for movement of an
             float prev_error;
             float goal;
             float dt;
+            double output;
             
             float mean_error;
             float prev_mean_error;

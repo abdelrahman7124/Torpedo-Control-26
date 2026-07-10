@@ -7,20 +7,20 @@
     #define YELLOW  "\x1b[33m"
 
 
-    #define KP_INITIAL 5.0
-    #define KI_INITIAL 0.0
-    #define KD_INITIAL 0.0
+    #define KP_INITIAL 3.0
+    #define KI_INITIAL 1.0
+    #define KD_INITIAL 0.5
 
     #define DEFAULT_DT 0.001
 
-    #define KP_STEP_UP 1.0002
-    #define KP_STEP_DOWN 0.9998
-    #define KI_STEP_UP 0.01
-    #define KI_STEP_DOWN 0.02
-    #define KD_STEP_UP 1.0001
-    #define KD_STEP_DOWN 0.9999
-    #define OVERSHOOT_SMALL_RESET 0.95
-    #define OVERSHOOT_LARGE_RESET 0.5
+    #define KP_STEP_UP 1
+    #define KP_STEP_DOWN 1
+    #define KI_STEP_UP 1
+    #define KI_STEP_DOWN 1
+    #define KD_STEP_UP 1
+    #define KD_STEP_DOWN 1
+    #define OVERSHOOT_SMALL_RESET 1
+    #define OVERSHOOT_LARGE_RESET 0
 
     #define LOW_PASS_FILTER_VALUE 0.02
 
@@ -28,14 +28,14 @@
     #define MAX_OUTPUT_THRESHOLD  400
     #define NORMALIZTION_PARAMETER 0
 
-    #define MEAN_THRESHOLD 0.04
-    #define VARIANCE_THRESHOLD 10.0
-    #define OVERSHOOT_THRESHOLD 5
-    #define GOAL_THRESHOLD 0.5
+    #define MEAN_THRESHOLD 5.0
+    #define VARIANCE_THRESHOLD 5.0
+    #define OVERSHOOT_THRESHOLD 2
+    #define GOAL_THRESHOLD 0.001
     
     #define KP_MAX_THRESHOLD 10.0
-    #define KI_MAX_THRESHOLD 2.0
-    #define KD_MAX_THRESHOLD 1.0
+    #define KI_MAX_THRESHOLD 10.0
+    #define KD_MAX_THRESHOLD 10.0
     
     #define KP_MIN_THRESHOLD 0.0
     #define KI_MIN_THRESHOLD 0.0

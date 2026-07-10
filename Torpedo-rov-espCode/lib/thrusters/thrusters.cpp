@@ -8,9 +8,10 @@
 #include "pid.h"
 #include "imu.h"
 #include "ethernet.h"
-#include "uploadLan.h"
 
-PID pid;
+
+PID pid_yaw;
+PID pid_drive;
 bool pid_start_flag = false;
 IMU imu;
 
@@ -30,7 +31,7 @@ float roll, pitch, yaw, depth;
 Servo thrusters[NUM_THRUSTERS];
 Servo gripperServo;
 
-const int thrusterPins[6] = {26, 27, 32, 4, 25, 16};
+const int thrusterPins[NUM_THRUSTERS] = {26, 27, 32, 4, 25, 16};
 const int gripperServoPin = 17;
 const int gripperPin = 33;
 unsigned long prev_time = 0;
@@ -82,7 +83,6 @@ ROVCommand parseCommand(char* packetBuffer) {
     for (int i = 0; i < NUM_THRUSTERS; i++) cmd.thrusterVals[i] = 1500;
     cmd.gripperAngle = 90;
     cmd.gripperOpen = 0;
-    for(int i = 0;i<NUM_DIRECTIONS;i++) cmd.directionVals[i] = 0;
 
     if (packetBuffer == NULL) return cmd;
 
@@ -91,89 +91,88 @@ ROVCommand parseCommand(char* packetBuffer) {
 
     // thrusters
     
-    while (token != NULL && index < NUM_THRUSTERS) 
+    while (token != NULL && index < 6) 
     {
         cmd.thrusterVals[index] = constrain(atoi(token), 1100, 1900);
-        // cmd.thrusterVals[index] = 1500;
         index++;
         token = strtok(NULL, ",");
     }
-
-
-    if (token != NULL) {
-        cmd.gripperAngle = constrain(atoi(token), 0, 180);
-        token = strtok(NULL, ",");
-    }
-
-    // gripper open/close
-    if (token != NULL) {
-        cmd.gripperOpen = atoi(token) == 1 ? 1 : 0;
-        token = strtok(NULL, ",");
-    }
-
-    index = 0;
-    while(token != NULL && index < NUM_DIRECTIONS){
-            cmd.directionVals[index] = atof(token);
-            index++;
-            token = strtok(NULL, ",");
-    }
-
-    // sendByUdp("----------Befor condition-------");
-
-    float data[2] = {cmd.directionVals[4], cmd.directionVals[5]} ;
-    // sendDataArrayFloat(data, 2);
     
-    if(cmd.directionVals[4] < 0.25 && cmd.directionVals[5] < 0.25 )
+    
+    
+    if(cmd.thrusterVals[12] < 0.25 && cmd.thrusterVals[13] < 0.25)
     {
         float alpha = 0.025;
-        // sendByUdp("--Entered First If--");
         
-        if(pid_start_flag == false)
+        if(!pid_start_flag)
         {
-            // sendByUdp("--Flag is false---Set to true--");
-            pid.set_goal(yaw);
+            pid_drive.set_goal(yaw);
             pid_start_flag = true;
         }
         
-        // sendByUdp("---Flag is already false---");
-
-        pid.set_dt((millis() - prev_time)/1000.0f);
-        pid.set_reading(yaw);
-        double pid_output = pid.run();
-
-        if(!pid_output)
-        {
-            cmd.thrusterVals[0] = (1-alpha) * cmd.thrusterVals[0] - (alpha) * pid_output;
-            cmd.thrusterVals[3] = (1-alpha) * cmd.thrusterVals[3] - (alpha) * pid_output;
-            cmd.thrusterVals[1] = (1-alpha) * cmd.thrusterVals[1] + (alpha) * pid_output;
-            cmd.thrusterVals[2] = (1-alpha) * cmd.thrusterVals[2] + (alpha) * pid_output;
-        }
-
         else
         {
-            cmd.thrusterVals[0] -= pid_output;
-            cmd.thrusterVals[3] -= pid_output;
-            cmd.thrusterVals[1] += pid_output;
-            cmd.thrusterVals[2] += pid_output;
+            pid_drive.set_dt((millis() - prev_time)/1000.0f);
+            pid_drive.set_reading(yaw);
+            double pid_output = pid_drive.run();
+
+            // if(pid_output)
+            // {
+            //     cmd.thrusterVals[0] = (1-alpha) * cmd.thrusterVals[0] - (alpha) * pid_output;
+            //     cmd.thrusterVals[3] = (1-alpha) * cmd.thrusterVals[3] - (alpha) * pid_output;
+            //     cmd.thrusterVals[1] = (1-alpha) * cmd.thrusterVals[1] + (alpha) * pid_output;
+            //     cmd.thrusterVals[2] = (1-alpha) * cmd.thrusterVals[2] + (alpha) * pid_output;
+            // }
+
+            // else
+            {
+                cmd.thrusterVals[0] += pid_output;
+                cmd.thrusterVals[3] += pid_output;
+                cmd.thrusterVals[1] -= pid_output;
+                cmd.thrusterVals[2] -= pid_output;
+            }
+            
+            
         }
     }
     
     else
     {
-        // sendByUdp("---Set Flag to False---");
         pid_start_flag = false;
-
     }
-
     
-
+    // gripper servo
+    if (token != NULL) {
+        cmd.gripperAngle = constrain(atoi(token), 0, 180);
+        token = strtok(NULL, ",");
+    }
+    
+    // gripper open/close
+    if (token != NULL) {
+        cmd.gripperOpen = atoi(token) == 1 ? 1 : 0;
+    }
+    
     prev_time = millis();
     return cmd;
 }
 
 void drive(ROVCommand cmd) 
-{
-    if (millis() - imuTimer >= 10) 
+{    
+    
+    for(int i = 0; i < NUM_THRUSTERS; i++)
+    {
+        cmd.thrusterVals[i] = constrain(cmd.thrusterVals[i], 1100, 1900);
+    }
+    
+    for (int i = 0; i < NUM_THRUSTERS; i++) 
+    {
+        thrusters[i].writeMicroseconds(cmd.thrusterVals[i]);
+    }
+    
+    gripperServo.write(cmd.gripperAngle);
+    digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
+    
+    if (micros() - imuTimer >= 125) 
     {
         imu.update();
         Serial.print(yaw);
@@ -186,31 +185,16 @@ void drive(ROVCommand cmd)
         yaw = kalman_filter_yaw.filter(yaw);
         depth = kalman_filter_depth.filter(1080.0);
         Serial.println(depth);
-
-        imuTimer = millis();
-    }
-
-    for(int i = 0; i < NUM_THRUSTERS; i++)
-    {
-        cmd.thrusterVals[i] = constrain(cmd.thrusterVals[i], 1100, 1900);
-        // cmd.thrusterVals[i] = 1500;
-    }
-
-    for (int i = 0; i < NUM_THRUSTERS; i++) 
-    {
-        thrusters[i].writeMicroseconds(cmd.thrusterVals[i]);
-    }
     
-    gripperServo.write(cmd.gripperAngle);
-    digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
-
+        imuTimer = micros();
+    }
     Serial.print(" Pressure: ");
     // Serial.print(bmp.readPressure());
     Serial.print(" Pa | Depth: ");
     Serial.print(depth);
     Serial.println(" m");
-
-    if (millis() - previousMillis > 500)
+    
+    if (micros() - previousMillis > 125)
     {
         float dataArray[7] =
         {
@@ -218,25 +202,15 @@ void drive(ROVCommand cmd)
             pitch,
             yaw,
             depth,
-            // pid.get_kp(),
-            // pid.get_ki(),
-            // pid.get_kd(),
-            (float)pid.get_goal(),
-            (float)(pid_start_flag?1.0:0.0),
-            (float)(cmd.directionVals[4] < 0.25 && cmd.directionVals[5] < 0.25),
-
-
+            pid_yaw.get_kp(),
+            pid_yaw.get_ki(),
+            pid_yaw.get_kd()
         };
 
         sendDataArrayFloat(dataArray, 7);
-        sendValues(pid.get_kp(), pid.get_ki(), pid.get_kd());
-        previousMillis = millis();
+
+        previousMillis = micros();
     }
 
     delay(100);
-}
-void setValues(float kp, float ki, float kd) {
-    pid.set_kp(kp);
-    pid.set_ki(ki);
-    pid.set_kd(kd);
 }

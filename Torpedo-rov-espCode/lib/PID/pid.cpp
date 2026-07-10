@@ -5,14 +5,14 @@ unsigned long prev_adapt_time = 0;
 
 PID::PID()
 {
-    // if(SYSTEM_MODE == CALIBRATION_MODE)
-    // { 
-    //     EEPROM.get(KP_STORE_ADDRESS, this->kp);
-    //     EEPROM.get(KI_STORE_ADDRESS, this->ki);
-    //     EEPROM.get(KD_STORE_ADDRESS, this->kd);
-    // }
+    if(SYSTEM_MODE == CALIBRATION_MODE)
+    { 
+        EEPROM.get(KP_STORE_ADDRESS, this->kp);
+        EEPROM.get(KI_STORE_ADDRESS, this->ki);
+        EEPROM.get(KD_STORE_ADDRESS, this->kd);
+    }
     
-    // else
+    else
     {
         this->kp = KP_INITIAL;
         this->kd = KD_INITIAL;
@@ -27,6 +27,7 @@ PID::PID()
     this->prev_error = 0.0;
     this->goal = 0.0;
     this->dt = 0.0;
+    this->output = 0.0;
     this->mean_error = 0.0;
     this->prev_mean_error = 0.0;
     this->error_variance = 0.0;
@@ -129,7 +130,7 @@ double PID::run()
 
     if(abs(this->error) <= GOAL_THRESHOLD)
     {
-        return NORMALIZTION_PARAMETER;
+        return this->output;
     }
 
     
@@ -147,15 +148,13 @@ double PID::run()
         this->diff = (this->error - this->prev_error)/this->dt;
     }
 
-    double output = (this->kp * error) + (this->ki * sum) + (this->kd * diff) + NORMALIZTION_PARAMETER;
+    this->output = (this->kp * error) + (this->ki * sum) + (this->kd * diff) + NORMALIZTION_PARAMETER;
     this->prev_error = this->error;
-    output = PID::clamp(output,MIN_OUTPUT_THRESHOLD,MAX_OUTPUT_THRESHOLD);
-    //if(millis() - prev_adapt_time > 1000)
-    //{
-        // PID::adapt();
-    //    prev_adapt_time = millis();
-    //}
-    return output;
+    this->output = PID::clamp(this->output,MIN_OUTPUT_THRESHOLD,MAX_OUTPUT_THRESHOLD);
+
+    PID::adapt();
+    
+    return this->output;
 }
 
 void PID::update()
@@ -192,26 +191,26 @@ void PID::adapt()
 
     if(this->error_variance > VARIANCE_THRESHOLD)
     {
-        this->kp *= KP_STEP_DOWN;
-        this->kd *= KD_STEP_UP;
+        this->kp -= KP_STEP_DOWN;
+        this->kd += KD_STEP_UP;
     }
 
     else
     {
-        this->kp *= KP_STEP_UP;
-        this->kd *= KD_STEP_DOWN;
+        this->kp += KP_STEP_UP;
+        this->kd -= KD_STEP_DOWN;
     }
 
     if(this->overshoot_count > OVERSHOOT_THRESHOLD)
     {
-        this->kp *= KP_STEP_DOWN;
-        this->kd *= KD_STEP_UP;
-        this->overshoot_count *= OVERSHOOT_SMALL_RESET;
+        this->kp -= KP_STEP_DOWN;
+        this->kd += KD_STEP_UP;
+        this->overshoot_count = OVERSHOOT_SMALL_RESET;
     }
 
     else
     {
-        this->overshoot_count *= OVERSHOOT_LARGE_RESET;
+        this->overshoot_count = OVERSHOOT_LARGE_RESET;
     }
 
 
