@@ -46,7 +46,8 @@ THRUSTER_AXES = {
     5: ['ud', 'pitch'],
 }
 
-FACTORS_DIR = os.path.join(os.path.expanduser("~"), "rov_factors")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FACTORS_DIR = os.path.join(SCRIPT_DIR, "rov_factors")
 FACTORS_FILE = os.path.join(FACTORS_DIR, "factors.json")
 
 
@@ -74,6 +75,13 @@ class FactorsWidget(QWidget):
 
         os.makedirs(FACTORS_DIR, exist_ok=True)
         self.load_factors()
+
+        # Debounced auto-save timer: restarted on every slider change so
+        # rapid drags don't hammer disk, but changes persist within ~1s
+        # even if the app is killed before a clean exit.
+        self._save_timer = QTimer()
+        self._save_timer.setSingleShot(True)
+        self._save_timer.timeout.connect(self.save_factors)
 
         main_layout = QVBoxLayout()
 
@@ -174,7 +182,13 @@ class FactorsWidget(QWidget):
             val = round(value / 100.0, 2)
             self.factors[level][axis][direction][thruster_idx] = val
             label.setText(f"    {DIR_LABELS[direction]}: {val:.2f}")
+            self._schedule_save()
         return callback
+
+    def _schedule_save(self):
+        # Restart the debounce timer on every change; only fires once
+        # slider movement pauses for 1s, avoiding a write per tick.
+        self._save_timer.start(1000)
 
     def _make_reset_callback(self, level):
         def callback():
@@ -193,6 +207,7 @@ class FactorsWidget(QWidget):
                         slider.setValue(100)
                         lbl.setText(f"    {DIR_LABELS[d]}: 1.00")
                         slider.blockSignals(False)
+        self.save_factors()
 
     def reset_all(self):
         for level in SPEED_LEVELS:
@@ -248,7 +263,7 @@ class FactorsWidget(QWidget):
                 f.flush()
                 os.fsync(f.fileno())
             os.replace(tmp_file, FACTORS_FILE)
-            print("Saved factors on exit")
+            print(f"Saved factors to {FACTORS_FILE}")
             return True
         except Exception as e:
             print(f"ERROR saving factors: {e}")

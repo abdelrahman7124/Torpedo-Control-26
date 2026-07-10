@@ -10,10 +10,12 @@ class GripperController(Node):
         self.BTN_GRIPPER_TOGGLE = 0
         self.BTN_GRIPPER_SERVO_RIGHT = 3
         self.BTN_GRIPPER_SERVO_LEFT = 1
+        self.BTN_PID_ON_OFF = 9
 
         self.gripper_value = 0
         self.servo_value = 0
-    
+        self.pid_value = 0
+
         self.prev_buttons = []
 
 
@@ -21,16 +23,20 @@ class GripperController(Node):
         self.gripper_pub = self.create_publisher(Int32MultiArray, 'gripper_cmd', 10)
 
         self.get_logger().info("Gripper Node Started")
-    
+
     def joy_callback(self, msg):
 
         try:
             data = json.loads(msg.data)
             buttons = data.get('buttons', [])
-            
+
             if buttons[self.BTN_GRIPPER_TOGGLE] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_GRIPPER_TOGGLE] == 0):
                 self.get_logger().info("Gripper TOGGLE")
                 self.gripper_value = 1 - self.gripper_value
+
+            if buttons[self.BTN_PID_ON_OFF] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_PID_ON_OFF] == 0):
+                self.get_logger().info("PID TOGGLE")
+                self.pid_value = 1 - self.pid_value
 
             if buttons[self.BTN_GRIPPER_SERVO_RIGHT] == 1:
                 self.get_logger().info("Gripper SERVO RIGHT")
@@ -43,14 +49,12 @@ class GripperController(Node):
 
             self.prev_buttons = buttons
 
-
             gripper_msg = Int32MultiArray()
-            gripper_msg.data = [self.servo_value, self.gripper_value]
+            gripper_msg.data = [self.servo_value, self.gripper_value, self.pid_value]
             self.gripper_pub.publish(gripper_msg)
 
         except json.JSONDecodeError:
             self.get_logger().error("Failed to decode JSON from joy_raw message")
-
 
 
 def main(args=None):
@@ -66,4 +70,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()    
+    main()
