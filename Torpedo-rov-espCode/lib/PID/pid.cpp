@@ -61,8 +61,8 @@ void PID::set_kd(float parameter)
 void PID::set_goal(float parameter)
 {
     this->sum = 0.00;
-    this->prev_error = 0.00;
     this->goal = parameter;
+    this->prev_error = this->goal - this->reading;
     this->mean_error = 0.0;
     this->prev_mean_error = 0.0;
     this->error_variance = 0.0;
@@ -130,7 +130,11 @@ double PID::run()
 
     if(abs(this->error) <= GOAL_THRESHOLD)
     {
-        return this->output;
+        this->sum = 0;
+        this->diff = 0;
+        this->output = 0;
+        this->prev_error = this->error;
+        return NORMALIZTION_PARAMETER;
     }
 
     

@@ -7,7 +7,7 @@ const int NUM_THRUSTERS = 6;
 extern IMU imu;
 
 struct ROVCommand {
-    int thrusterVals[NUM_THRUSTERS];
+    int thrusterVals[14];
     int gripperAngle;
     int gripperOpen;
 };
@@ -15,6 +15,6 @@ struct ROVCommand {
 void parseAndDrive(char* packetBuffer);
 void setupThrusters();
 void setupGripper();
-ROVCommand parseCommand(char* packetBuffer);
+ROVCommand parseCommand(char* packetBuffer, float yaw);
 void drive(ROVCommand cmd);
 #endif

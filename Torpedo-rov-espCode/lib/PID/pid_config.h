@@ -13,12 +13,12 @@
 
     #define DEFAULT_DT 0.001
 
-    #define KP_STEP_UP 1
-    #define KP_STEP_DOWN 1
-    #define KI_STEP_UP 1
-    #define KI_STEP_DOWN 1
-    #define KD_STEP_UP 1
-    #define KD_STEP_DOWN 1
+    #define KP_STEP_UP 0.01
+    #define KP_STEP_DOWN 0.01
+    #define KI_STEP_UP 0.01
+    #define KI_STEP_DOWN 0.01
+    #define KD_STEP_UP 0.01
+    #define KD_STEP_DOWN 0.01
     #define OVERSHOOT_SMALL_RESET 1
     #define OVERSHOOT_LARGE_RESET 0
 
@@ -31,7 +31,7 @@
     #define MEAN_THRESHOLD 5.0
     #define VARIANCE_THRESHOLD 5.0
     #define OVERSHOOT_THRESHOLD 2
-    #define GOAL_THRESHOLD 0.001
+    #define GOAL_THRESHOLD 10
     
     #define KP_MAX_THRESHOLD 10.0
     #define KI_MAX_THRESHOLD 10.0

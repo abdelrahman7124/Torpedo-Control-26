@@ -13,20 +13,8 @@
 PID pid_yaw;
 PID pid_drive;
 bool pid_start_flag = false;
-IMU imu;
 
-unsigned long imuTimer = 0;
 
-KALMAN kalman_filter_yaw;
-KALMAN kalman_filter_pitch;
-KALMAN kalman_filter_roll;
-KALMAN kalman_filter_depth;
-
-DRIFTNEGATION drift_negation_yaw;
-DRIFTNEGATION drift_negation_pitch;
-DRIFTNEGATION drift_negation_roll;
-
-float roll, pitch, yaw, depth;
 
 Servo thrusters[NUM_THRUSTERS];
 Servo gripperServo;
@@ -56,11 +44,6 @@ void setupThrusters() {
     }
     delay(2000);
 
-        
-    kalman_filter_pitch.set_R(0.2);
-    kalman_filter_roll.set_R(0.2);
-    drift_negation_pitch.set_threshold(0.2);
-    drift_negation_roll.set_threshold(0.2);
 }
 
 void setupGripper() {
@@ -77,7 +60,7 @@ void parse(char* buffer){
 
 
 
-ROVCommand parseCommand(char* packetBuffer) {
+ROVCommand parseCommand(char* packetBuffer,float yaw) {
     ROVCommand cmd;
     // defaults
     for (int i = 0; i < NUM_THRUSTERS; i++) cmd.thrusterVals[i] = 1500;
@@ -91,54 +74,54 @@ ROVCommand parseCommand(char* packetBuffer) {
 
     // thrusters
     
-    while (token != NULL && index < 6) 
+    while (token != NULL && index < 14) 
     {
-        cmd.thrusterVals[index] = constrain(atoi(token), 1100, 1900);
+        if(index < NUM_THRUSTERS)
+        {
+            cmd.thrusterVals[index] = constrain(atoi(token), 1100, 1900);
+        }
+        else
+        {
+            cmd.thrusterVals[index] = atoi(token);
+        }
         index++;
         token = strtok(NULL, ",");
     }
+
+
     
     
     
-    if(cmd.thrusterVals[12] < 0.25 && cmd.thrusterVals[13] < 0.25)
+    if(cmd.thrusterVals[12] < 0.5 && cmd.thrusterVals[13] < 0.5)
     {
-        float alpha = 0.025;
+        float alpha = 0.8f;
         
         if(!pid_start_flag)
         {
             pid_drive.set_goal(yaw);
+            prev_time = micros(); 
             pid_start_flag = true;
         }
         
         else
         {
-            pid_drive.set_dt((millis() - prev_time)/1000.0f);
+            pid_drive.set_dt((micros() - prev_time) * 1e-6f);
+            prev_time = micros();
             pid_drive.set_reading(yaw);
             double pid_output = pid_drive.run();
 
-            // if(pid_output)
-            // {
-            //     cmd.thrusterVals[0] = (1-alpha) * cmd.thrusterVals[0] - (alpha) * pid_output;
-            //     cmd.thrusterVals[3] = (1-alpha) * cmd.thrusterVals[3] - (alpha) * pid_output;
-            //     cmd.thrusterVals[1] = (1-alpha) * cmd.thrusterVals[1] + (alpha) * pid_output;
-            //     cmd.thrusterVals[2] = (1-alpha) * cmd.thrusterVals[2] + (alpha) * pid_output;
-            // }
-
-            // else
-            {
-                cmd.thrusterVals[0] += pid_output;
-                cmd.thrusterVals[3] += pid_output;
-                cmd.thrusterVals[1] -= pid_output;
-                cmd.thrusterVals[2] -= pid_output;
-            }
-            
-            
+            cmd.thrusterVals[0] += (alpha) * pid_output;
+            cmd.thrusterVals[3] += (alpha) * pid_output;
+            cmd.thrusterVals[1] -= (alpha) * pid_output;
+            cmd.thrusterVals[2] -= (alpha) * pid_output;
+                        
         }
     }
     
     else
     {
         pid_start_flag = false;
+        pid_drive.set_goal(yaw);
     }
     
     // gripper servo
@@ -152,7 +135,6 @@ ROVCommand parseCommand(char* packetBuffer) {
         cmd.gripperOpen = atoi(token) == 1 ? 1 : 0;
     }
     
-    prev_time = millis();
     return cmd;
 }
 
@@ -172,45 +154,29 @@ void drive(ROVCommand cmd)
     gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
     
-    if (micros() - imuTimer >= 125) 
-    {
-        imu.update();
-        Serial.print(yaw);
-        Serial.print("  |  ");
-        roll = drift_negation_roll.filter(imu.getRoll());
-        roll = kalman_filter_roll.filter(roll);
-        pitch = drift_negation_pitch.filter(imu.getPitch());
-        pitch = kalman_filter_pitch.filter(pitch);
-        yaw = drift_negation_yaw.filter(imu.getYaw());
-        yaw = kalman_filter_yaw.filter(yaw);
-        depth = kalman_filter_depth.filter(1080.0);
-        Serial.println(depth);
-    
-        imuTimer = micros();
-    }
-    Serial.print(" Pressure: ");
+    //Serial.print(" Pressure: ");
     // Serial.print(bmp.readPressure());
-    Serial.print(" Pa | Depth: ");
-    Serial.print(depth);
-    Serial.println(" m");
+    // Serial.print(" Pa | Depth: ");
+    // Serial.print(depth);
+    // Serial.println(" m");
     
-    if (micros() - previousMillis > 125)
-    {
-        float dataArray[7] =
-        {
-            roll,
-            pitch,
-            yaw,
-            depth,
-            pid_yaw.get_kp(),
-            pid_yaw.get_ki(),
-            pid_yaw.get_kd()
-        };
+    // if (micros() - previousMillis > 125)
+    // {
+    //     float dataArray[7] =
+    //     {
+    //         roll,
+    //         pitch,
+    //         yaw,
+    //         depth,
+    //         pid_yaw.get_kp(),
+    //         pid_yaw.get_ki(),
+    //         pid_yaw.get_kd()
+    //     };
 
-        sendDataArrayFloat(dataArray, 7);
+    //     sendDataArrayFloat(dataArray, 7);
 
-        previousMillis = micros();
-    }
+    //     previousMillis = micros();
+    // }
 
     delay(100);
 }
