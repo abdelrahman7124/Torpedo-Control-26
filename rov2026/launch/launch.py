@@ -43,19 +43,24 @@ def generate_launch_description():
             executable='esp_commands_control',
             name='esp_commands_control_node',
         ),
-        Node(
-            package='rov2026',
-            executable='esp_to_ros',
-            name='EspToRos',
-        ),
-        Node(
-            package='rov2026',
-            executable='pid_handler',
-            name='pid_handler',
-        ),
+        # Node(
+        #     package='rov2026',
+        #     executable='esp_to_ros',
+        #     name='EspToRos',
+        # ),
+        # Node(
+        #     package='rov2026',
+        #     executable='pid_handler',
+        #     name='pid_handler',
+        # ),
         Node(
             package='rov2026',
             executable='rov_flags',
             name='flags',
+        ),
+        Node(
+            package='rov2026',
+            executable='factors_gui',
+            name='factors_gui',
         ),
     ])
