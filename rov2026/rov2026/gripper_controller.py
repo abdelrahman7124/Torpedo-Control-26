@@ -7,12 +7,16 @@ class GripperController(Node):
     def __init__(self):
         super().__init__('gripper_controller')
 
-        self.BTN_GRIPPER_TOGGLE = 0
+        self.BTN_GRIPPER1_TOGGLE = 0
+        self.BTN_GRIPPER2_TOGGLE = 2
+
         self.BTN_GRIPPER_SERVO_RIGHT = 3
         self.BTN_GRIPPER_SERVO_LEFT = 1
         self.BTN_PID_ON_OFF = 9
 
-        self.gripper_value = 0
+        self.gripper1_value = 0
+        self.gripper2_value = 0
+
         self.servo_value = 0
         self.pid_value = 0
 
@@ -30,9 +34,13 @@ class GripperController(Node):
             data = json.loads(msg.data)
             buttons = data.get('buttons', [])
 
-            if buttons[self.BTN_GRIPPER_TOGGLE] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_GRIPPER_TOGGLE] == 0):
+            if buttons[self.BTN_GRIPPER1_TOGGLE] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_GRIPPER1_TOGGLE] == 0):
                 self.get_logger().info("Gripper TOGGLE")
-                self.gripper_value = 1 - self.gripper_value
+                self.gripper1_value = 1 - self.gripper1_value
+            
+            if buttons[self.BTN_GRIPPER2_TOGGLE] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_GRIPPER2_TOGGLE] == 0):
+                self.get_logger().info("Gripper TOGGLE")
+                self.gripper2_value = 1 - self.gripper2_value
 
             if buttons[self.BTN_PID_ON_OFF] == 1 and (not self.prev_buttons or self.prev_buttons[self.BTN_PID_ON_OFF] == 0):
                 self.get_logger().info("PID TOGGLE")
@@ -50,7 +58,7 @@ class GripperController(Node):
             self.prev_buttons = buttons
 
             gripper_msg = Int32MultiArray()
-            gripper_msg.data = [self.servo_value, self.gripper_value, self.pid_value]
+            gripper_msg.data = [self.servo_value, self.gripper1_value, self.gripper2_value, self.pid_value]
             self.gripper_pub.publish(gripper_msg)
 
         except json.JSONDecodeError:

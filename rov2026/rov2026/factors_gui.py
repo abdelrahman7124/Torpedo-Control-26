@@ -53,14 +53,36 @@ FACTORS_FILE = os.path.join(FACTORS_DIR, "factors.json")
 
 def default_factors():
     return {
-        level: {
-            axis: {
-                d: [1.0] * 6
-                for d in DIRECTIONS
-            }
-            for axis in AXES
-        }
-        for level in SPEED_LEVELS
+        "LOW": {
+            "fb": {
+                "fwd": [0.98, 1.0, 1.0, 0.96, 1.0, 1.0],
+                "bwd": [0.96, 1.0, 1.0, 0.8, 1.0, 1.0],
+            },
+            "rl":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "yaw":   {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "ud":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "pitch": {"fwd": [1.0]*6, "bwd": [1.0]*6},
+        },
+        "MEDIUM": {
+            "fb": {
+                "fwd": [0.98, 1.0, 1.0, 0.97, 1.0, 1.0],
+                "bwd": [0.8, 1.0, 1.0, 0.92, 1.0, 1.0],
+            },
+            "rl":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "yaw":   {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "ud":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "pitch": {"fwd": [1.0]*6, "bwd": [1.0]*6},
+        },
+        "HIGH": {
+            "fb": {
+                "fwd": [0.95, 1.0, 1.0, 1.0, 1.0, 1.0],
+                "bwd": [1.0, 1.0, 0.99, 1.0, 1.0, 1.0],
+            },
+            "rl":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "yaw":   {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "ud":    {"fwd": [1.0]*6, "bwd": [1.0]*6},
+            "pitch": {"fwd": [1.0]*6, "bwd": [1.0]*6},
+        },
     }
 
 
@@ -74,7 +96,7 @@ class FactorsWidget(QWidget):
         self.current_level = 'MEDIUM'
 
         os.makedirs(FACTORS_DIR, exist_ok=True)
-        self.load_factors()
+        # self.load_factors()
 
         # Debounced auto-save timer: restarted on every slider change so
         # rapid drags don't hammer disk, but changes persist within ~1s

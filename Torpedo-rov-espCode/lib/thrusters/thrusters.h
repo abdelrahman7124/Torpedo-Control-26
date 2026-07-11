@@ -12,6 +12,7 @@ struct ROVCommand {
     float directionVals[NUM_DIRECTIONS];
     int gripperAngle;
     int gripperOpen;
+    int gripper2Open;
 };
 
 void parseAndDrive(char* packetBuffer);

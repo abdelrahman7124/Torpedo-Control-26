@@ -7,7 +7,7 @@ class EspCommandsControl(Node):
         super().__init__('esp_commands_control')
 
         self.thruster_pwm = [1500, 1500, 1500, 1500, 1500, 1500]
-        self.gripper_data = [90, 0]
+        self.gripper_data = [90, 0, 0]
         self.pid_data = [0]
 
         self.create_subscription(Int32MultiArray, 'thruster_cmd', self.thruster_callback, 10)
@@ -24,8 +24,8 @@ class EspCommandsControl(Node):
 
     def gripper_callback(self, msg):
 
-        self.gripper_data = list(msg.data[:2])
-        self.pid_data = list(msg.data[2:3])
+        self.gripper_data = list(msg.data[:3])
+        self.pid_data = list(msg.data[3:4])
         self.publish_combined()
 
     def pid_callback(self,msg):

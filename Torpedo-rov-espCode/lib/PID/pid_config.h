@@ -7,7 +7,7 @@
     #define YELLOW  "\x1b[33m"
 
 
-    #define KP_INITIAL 5.0
+    #define KP_INITIAL 0.0
     #define KI_INITIAL 0.0
     #define KD_INITIAL 0.0
 

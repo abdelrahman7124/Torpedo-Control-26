@@ -9,7 +9,7 @@ class ROVInput(Node):
         super().__init__('rov_input')
 
         self.AXIS_FB = 1
-        self.AXIS_RL = 6
+        self.AXIS_RL = 0
         self.AXIS_UP = 2
         self.AXIS_DOWN = 5
         self.AXIS_YAW = 3

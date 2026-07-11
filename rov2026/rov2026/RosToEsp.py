@@ -23,7 +23,7 @@ class RosToEsp(Node):
 
         self.esp_addr = (ESP_IP, ESP_PORT)
 
-        self.pwm_cmd = "1500,1500,1500,1500,1500,1500,90,0,0"
+        self.pwm_cmd = "1500,1500,1500,1500,1500,1500,90,0,0,0"
 
         self.current_cmd = self.pwm_cmd
 
@@ -68,7 +68,7 @@ class RosToEsp(Node):
             if elapsed > 0.5:
 
                 self.pwm_cmd = (
-                    "1500,1500,1500,1500,1500,1500,90,0,0"
+                    "1500,1500,1500,1500,1500,1500,90,0,0,0"
                 )
 
                 self.flags = [0.0,0.0,0.0,0.0,0.0,0.0]

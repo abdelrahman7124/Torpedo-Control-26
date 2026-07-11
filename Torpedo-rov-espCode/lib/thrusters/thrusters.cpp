@@ -34,6 +34,7 @@ Servo gripperServo;
 const int thrusterPins[6] = {26, 27, 32, 4, 25, 16};
 const int gripperServoPin = 17;
 const int gripperPin = 33;
+const int gripper2Pin = 31;
 unsigned long prev_time = 0;
 unsigned long previousMillis = 0;
 
@@ -73,6 +74,9 @@ void setupGripper() {
     pinMode(gripperPin, OUTPUT);
     digitalWrite(gripperPin, LOW);
 
+    pinMode(gripper2Pin, OUTPUT);
+    digitalWrite(gripper2Pin, LOW);
+
     gripperServo.attach(gripperServoPin, 1000, 2000);
     gripperServo.write(90);
 }
@@ -89,6 +93,7 @@ ROVCommand parseCommand(char* packetBuffer) {
     for (int i = 0; i < NUM_THRUSTERS; i++) cmd.thrusterVals[i] = 1500;
     cmd.gripperAngle = 90;
     cmd.gripperOpen = 0;
+    cmd.gripper2Open = 0;
     for(int i = 0;i<NUM_DIRECTIONS;i++) cmd.directionVals[i] = 0;
 
     if (packetBuffer == NULL) return cmd;
@@ -117,6 +122,11 @@ ROVCommand parseCommand(char* packetBuffer) {
         cmd.gripperOpen = atoi(token) == 1 ? 1 : 0;
         token = strtok(NULL, ",");
     }
+    if (token != NULL) {
+        cmd.gripper2Open = atoi(token) == 1 ? 1 : 0;
+        token = strtok(NULL, ",");
+    }
+
     if (token != NULL) {
         pid_on_off = atoi(token);
         token = strtok(NULL, ",");
@@ -220,6 +230,7 @@ void drive(ROVCommand cmd)
     
     gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
+    digitalWrite(gripper2Pin, cmd.gripper2Open ? HIGH : LOW);
 
     Serial.print(" Pressure: ");
     // Serial.print(bmp.readPressure());
