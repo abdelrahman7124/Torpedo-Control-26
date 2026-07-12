@@ -32,9 +32,9 @@ Servo thrusters[NUM_THRUSTERS];
 Servo gripperServo;
 
 const int thrusterPins[6] = {26, 27, 32, 4, 25, 16};
-const int gripperServoPin = 17;
+// const int gripperServoPin = 31;
 const int gripperPin = 33;
-const int gripper2Pin = 31;
+const int gripper2Pin = 17;
 unsigned long prev_time = 0;
 unsigned long previousMillis = 0;
 
@@ -77,8 +77,8 @@ void setupGripper() {
     pinMode(gripper2Pin, OUTPUT);
     digitalWrite(gripper2Pin, LOW);
 
-    gripperServo.attach(gripperServoPin, 1000, 2000);
-    gripperServo.write(90);
+    // gripperServo.attach(gripperServoPin, 1000, 2000);
+    // gripperServo.write(90);
 }
 
 void parse(char* buffer){
@@ -91,7 +91,7 @@ ROVCommand parseCommand(char* packetBuffer) {
     ROVCommand cmd;
     // defaults
     for (int i = 0; i < NUM_THRUSTERS; i++) cmd.thrusterVals[i] = 1500;
-    cmd.gripperAngle = 90;
+    // cmd.gripperAngle = 90;
     cmd.gripperOpen = 0;
     cmd.gripper2Open = 0;
     for(int i = 0;i<NUM_DIRECTIONS;i++) cmd.directionVals[i] = 0;
@@ -113,7 +113,7 @@ ROVCommand parseCommand(char* packetBuffer) {
 
 
     if (token != NULL) {
-        cmd.gripperAngle = constrain(atoi(token), 0, 180);
+        // cmd.gripperAngle = constrain(atoi(token), 0, 180);
         token = strtok(NULL, ",");
     }
 
@@ -228,7 +228,7 @@ void drive(ROVCommand cmd)
         thrusters[i].writeMicroseconds(cmd.thrusterVals[i]);
     }
     
-    gripperServo.write(cmd.gripperAngle);
+    // gripperServo.write(cmd.gripperAngle);
     digitalWrite(gripperPin, cmd.gripperOpen ? HIGH : LOW);
     digitalWrite(gripper2Pin, cmd.gripper2Open ? HIGH : LOW);
 

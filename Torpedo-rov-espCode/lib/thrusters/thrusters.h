@@ -10,7 +10,7 @@ extern IMU imu;
 struct ROVCommand {
     int thrusterVals[NUM_THRUSTERS];
     float directionVals[NUM_DIRECTIONS];
-    int gripperAngle;
+    // int gripperAngle;
     int gripperOpen;
     int gripper2Open;
 };
